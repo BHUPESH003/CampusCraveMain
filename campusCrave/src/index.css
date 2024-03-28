@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Sen:wght@400..800&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  font-size: 62.5%;
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+.heading {
+  font-size: 3.5rem;
+}
+
+.sub-heading {
+  font-size: 2.2rem;
+}
+
+.body-font {
+  font-size: 1.6rem;
+}
+.sub-body-font {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 767.98px) {
+  .heading {
+    font-size: 1.8rem;
+  }
+
+  .sub-heading {
+    font-size: 1.6rem;
+  }
+
+  .body-font {
+    font-size: 1.4rem;
+  }
+
+  .sub-body-font {
+    font-size: 0.6rem;
+  }
+}
+
+.fs-24 {
+  font-size: 24px;
+}
+.fs-16 {
+  font-size: 16px;
+}
+/* OnboardingScreen.css */
+.onboarding-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.onboarding-page {
+  display: none;
+}
+
+.onboarding-page.active {
+  display: block;
+}
+.dot-indicators {
+  display: flex;
+  margin-top: 20px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.active-dot {
+  background-color: #007bff;
+}
+
+.bg-color {
+  background-color: #1e1e2e;
+}
+
+.text-color {
+  color: #ff7622;
+}
+.card {
+  margin: auto;
+  max-width: 950px;
+  width: 90%;
+  box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  border-radius: 1rem;
+  border: transparent;
+}
+.cart {
+  background-color: #fff;
+  padding: 4vh 5vh;
+  border-bottom-left-radius: 1rem;
+  border-top-left-radius: 1rem;
+}
