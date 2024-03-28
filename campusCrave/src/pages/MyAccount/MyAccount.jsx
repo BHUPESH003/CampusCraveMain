@@ -23,13 +23,13 @@ export default function MyAccount() {
         
             <div className='row p-4 ' >
 
-                <div className='col-6  text-center'>
-                <span style={{fontSize:"2rem" , fontFamily:"cursive"}} ><b>User Name</b></span><br/>
+                <div className='col-6  text-center heading '>
+                <span style={{ fontFamily:"cursive"}}  className='heading'>User Name</span><br/>
                 <span className='m-5' style={{fontFamily:"cursive"}}>Phone No </span>
                 <span style={{fontFamily:"cursive"}}>Email ID</span>
                 </div>
-                <div className=' col-6 text-center align-self-center' >
-                    <button type='button' className='btn btn-primary border'> Edit Profile</button>
+                <div className=' col-6 text-center align-self-center ' >
+                    <button type='button' className='btn btn-primary border '><span className='sub-heading'>Edit Profile</span> </button>
                 </div>
 
             </div>
@@ -52,17 +52,17 @@ export default function MyAccount() {
       onSelect={handleTabSelect}
     >
       
-      <Row className="m-0 text-body">
+      <Row className="m-0 text-body heading">
         <Col
           sm={3}
-          className="d-md-flex flex-column align-items-center justify-content-center"
+          className="d-md-flex  flex-column align-items-center justify-content-center"
         >
           <Nav
             // variant="tabs"
             className=" d-flex flex-column"
             style={{ borderRight: "1px solid #000" }}
           >
-            <Nav.Item className="mt-3">
+            <Nav.Item className="mt-3 sub-heading">
               <Nav.Link
                 eventKey="first"
                 className={`text-body ${activeTab === "first" ? "fw-bolder" : ""
@@ -71,7 +71,7 @@ export default function MyAccount() {
                 My Orders
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className="mt-3">
+            <Nav.Item className="mt-3 sub-heading">
               <Nav.Link
                 eventKey="second"
                 className={`text-body ${activeTab === "second" ? "fw-bolder" : ""
@@ -80,7 +80,7 @@ export default function MyAccount() {
                 Favourites
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className="mt-3">
+            <Nav.Item className="mt-3 sub-heading">
               <Nav.Link
                 eventKey="third"
                 className={`text-body ${activeTab === "third" ? "fw-bolder" : ""
@@ -89,7 +89,7 @@ export default function MyAccount() {
                 Payments
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className="mt-3">
+            <Nav.Item className="mt-3 sub-heading">
               <Nav.Link
                 eventKey="fourth"
                 className={`text-body ${activeTab === "fourth" ? "fw-bolder" : ""
@@ -101,7 +101,7 @@ export default function MyAccount() {
             
             </Nav>
         </Col>
-        <Col sm={9}>
+        <Col sm={9} >
           <Tab.Content className="w-85 d-flex flex-column justify-content-center">
             <Tab.Pane eventKey="first" className="py-3">
               <MyOrders />

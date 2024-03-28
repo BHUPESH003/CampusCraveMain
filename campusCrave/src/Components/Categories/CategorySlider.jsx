@@ -51,7 +51,7 @@ const CategorySlider = (props) => {
 
   return (
     <div className="container-fluid h-100">
-      <h2 className="text-center mt-3 heading">
+      <h2 className="text-center mt-3 sub-heading text-warning">
         {props.heading}
       </h2>
       {props ? (

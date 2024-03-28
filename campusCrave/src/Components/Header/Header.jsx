@@ -18,7 +18,7 @@ function Header() {
       <div className="container-fluid d-flex justify-content-between">
         <Link
           to={"/"}
-          className="text-decoration-none text-body heading  border-0"
+          className="text-decoration-none text-body sub-heading  border-0"
         >
           Campus Crave
         </Link>
