@@ -1,7 +1,5 @@
 import React from "react";
 import SearchBar from "../../Components/SearchBar/SearchBar.jsx";
-const CancelPage  = React.lazy(()=>import("../CancelPage/CancelPage.jsx"))
-
  const  SuccessPage = React.lazy(()=>import("../SuccessPage/SuccessPage.jsx"))  ;
 // import CheckOut from "../CheckOut/CheckOut.jsx";
 const CheckOut=React.lazy(()=> import('../CheckOut/CheckOut.jsx'))
@@ -27,7 +25,6 @@ const routes = [
   { path: "/vendor/:vendorId" , exact : true , name :"vendorDetails" , component : VendorPage},
   { path: "/my-account" , exact : true , name :"myaccount" , component : MyAccount},
   { path: "/success" , exact : true , name :"success" , component : SuccessPage},
-  { path: "/failed" , exact : true , name :"cancel" , component : CancelPage},
   
   
 ];
