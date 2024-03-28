@@ -5,11 +5,11 @@ import React from 'react'
 
 export default function SearchBar() {
   return (
-    <div>
+    <div className='m-5'>
         <CInputGroup className="flex-nowrap">
-        <CInputGroupText id="addon-wrapping"><CIcon icon={cilSearch} /></CInputGroupText>
+        <CInputGroupText id="addon-wrapping"><CIcon icon={cilSearch} size='xxl' /></CInputGroupText>
         
-        <CFormInput placeholder="Search dishes " aria-label="Username" aria-describedby="addon-wrapping" />
+        <CFormInput className='heading' placeholder="Search dishes " aria-label="Username" aria-describedby="addon-wrapping" />
         </CInputGroup>
         </div>
   )
