@@ -8,7 +8,7 @@ categoriesRouter.get("/", async (req, res) => {
   try {
     const result = await client.query("SELECT * FROM category");
     const categories = result.rows;
-    console.log(categories);
+   
     res.json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);

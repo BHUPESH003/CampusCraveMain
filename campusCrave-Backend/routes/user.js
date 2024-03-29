@@ -19,7 +19,11 @@ const registrationSchema = z.object({
 
 // Register a new user
 userRouter.post("/register", async (req, res) => {
+ 
+
   try {
+    await client.query("BEGIN"); // Begin transaction
+
     // Validate input using Zod
     const { username, password, email, phone_no, userType } =
       registrationSchema.parse(req.body);
@@ -43,10 +47,21 @@ userRouter.post("/register", async (req, res) => {
       "INSERT INTO users (username, password, email, phone_no, userType) VALUES ($1, $2, $3, $4, $5) RETURNING *",
       [username, hashedPassword, email, phone_no, userType]
     );
+    console.log(result.rows[0]);
+    const userId = result.rows[0].user_id;
+
+    // Insert mapping of username to user ID into the username_to_id table
+    await client.query(
+      "INSERT INTO username_to_user_id (username, user_id) VALUES ($1, $2)",
+      [username, userId]
+    );
+
+    await client.query("COMMIT"); // Commit transaction
 
     const newUser = result.rows[0];
     res.status(201).json(newUser);
   } catch (error) {
+    await client.query("ROLLBACK"); // Rollback transaction
     console.error("Error registering user:", error);
 
     // Handle Zod validation errors
@@ -175,7 +190,6 @@ userRouter.post("/saveUserData", async (req, res) => {
     ];
 
     const { rows } = await client.query(query, values);
-    console.log(rows);
 
     // Send success response with the saved user data
     res.status(200).json(rows[0]);
