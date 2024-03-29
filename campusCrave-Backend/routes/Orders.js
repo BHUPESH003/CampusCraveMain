@@ -51,7 +51,6 @@ orders.post("/:orderId/review", authenticateToken, async (req, res) => {
       `;
     const orderItemsResult = await client.query(orderItemsQuery, [orderId]);
     const items = orderItemsResult.rows[0].items_ordered;
-    console.log(orderItemsResult.rows[0]);
 
     // Insert item ratings into the item_ratings table
     for (const itemRating of ratings) {
@@ -84,13 +83,12 @@ orders.post("/:orderId/review", authenticateToken, async (req, res) => {
   }
 });
 
-async function storeOrder(products) {
-  console.log(products.products)
-
+async function storeOrder({userId,products}) {
+ 
   // Check if an identical order already exists
   const existingOrderQuery = `
     SELECT id FROM placed_order 
-    WHERE user_id = $1
+    WHERE username = $1
     AND order_time = $2
     AND food_ready_time = $3
     AND price = $4
@@ -101,7 +99,7 @@ async function storeOrder(products) {
     AND payment_status = $9;
   `;
   const existingOrderValues = [
-    products.products.userId,
+    userId,
     products.products.orderTime,
     products.products.foodReadyTime,
     products.products.price,
@@ -120,12 +118,12 @@ async function storeOrder(products) {
 
   // If the order is not found, insert it into the database
   const query = `
-    INSERT INTO placed_order (user_id, order_time, food_ready_time, price, comment, vendor_id, created_at, payment_id, payment_status)
+    INSERT INTO placed_order (username, order_time, food_ready_time, price, comment, vendor_id, created_at, payment_id, payment_status)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id;
   `;
   const values = [
-    products.products.userId,
+    userId,
     products.products.orderTime,
     products.products.foodReadyTime,
     products.products.price,
@@ -163,7 +161,7 @@ async function getOrder(orderId) {
 
   const order = orderResult.rows[0];
   const itemsOrdered = itemsResult.rows;
-
+  
   // Combine order details with itemsOrdered
   order.itemsOrdered = itemsOrdered;
 
@@ -171,4 +169,29 @@ async function getOrder(orderId) {
 }
 
 
-module.exports = {storeOrder,getOrder};
+async function updateOrderStatus(orderId, status) {
+  try {
+    // Execute the SQL query to update the order status
+    const query = `
+      UPDATE placed_order
+      SET payment_status = $1
+      WHERE id = $2
+      RETURNING id, payment_status;
+    `;
+    console.log("OrderId in update func:",orderId)
+    const values = [status, orderId];
+    const result = await client.query(query, values);
+   
+    // Return the orderId and status
+    // return {
+    //   orderId: result.rows[0].id,
+    //   status: result.rows[0].payment_status
+    // };
+    // console.log(result)
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    throw error;
+  }
+}
+
+module.exports = {storeOrder,getOrder,updateOrderStatus};

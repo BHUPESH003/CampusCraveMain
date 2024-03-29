@@ -15,6 +15,7 @@
     "@coreui/react": "^4.11.1",
     "@stripe/react-stripe-js": "^2.5.1",
     "@stripe/stripe-js": "^3.0.7",
+    "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "circular-json": "^0.5.9",
     "icons": "^1.0.0",

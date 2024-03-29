@@ -1,10 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { getOrder, storeOrder } = require("./routes/Orders");
+const { getOrder, storeOrder, updateOrderStatus } = require("./routes/Orders");
 
 const rootRouter = require("./routes/index");
 const Stripe = require("stripe");
+const authenticateToken = require("./MiddleWares/authMiddleWare");
 
 const app = express();
 
@@ -17,14 +18,19 @@ const stripe = new Stripe(process.env.STRIPE_KEY, {
   apiVersion: "2020-08-27", // Specify the API version (optional)
 });
 
+app.get("/verify-token", authenticateToken, (req, res) => {
+  const userName = req.user.username; // Assuming userId is included in the token payload
+  res.json({ userName });
+});
+
 // Endpoint to create a checkout session
 app.post("/create-checkout-session", async (req, res) => {
   try {
     // Extract product data and customer information from the request body
-    const { products } = req.body;
+    const { userId, products } = req.body;
 
     // Store the order in the database and retrieve the order details
-    const orderId = await storeOrder(products);
+    const orderId = await storeOrder({ products, userId });
     const order = await getOrder(orderId);
 
     // Prepare line items for the checkout session
@@ -46,6 +52,9 @@ app.post("/create-checkout-session", async (req, res) => {
       mode: "payment",
       success_url: "http://localhost:5173/", // URL to redirect after successful payment
       cancel_url: "http://localhost:5173/cancel", // URL to redirect after payment cancellation
+      metadata: {
+        orderId: orderId, // Include orderId in metadata
+      },
     });
 
     // Return the session ID to the client
@@ -55,6 +64,42 @@ app.post("/create-checkout-session", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+app.post("/webhook", async (req, res) => {
+  try {
+    // Extract the event data from the request body
+    const event = req.body;
+    // console.log(event.data.object.metadata.orderId);
+    const orderId=event.data.object.metadata.orderId;
+    console.log(event.data.object.metadata)
+    console.log(orderId)
+    // Handle different types of events
+    switch (event.type) {
+      case "customer.created":
+        // Extract relevant data from the event
+        console.log("HERE");
+        console.log("OrderId: customer", orderId);
+
+      case "payment_intent.succeeded":
+        // Extract relevant data from the event
+
+        console.log("OrderId: payment", orderId);
+        // Update the corresponding order in the database
+        await updateOrderStatus(orderId, "Recieved");
+
+        res.status(200).json({ received: true });
+        break;
+      // Handle other event types as needed
+      default:
+        console.log("Unhandled event type:", event.type);
+        res.status(200).json({ received: false });
+    }
+  } catch (error) {
+    console.error("Error processing webhook event:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

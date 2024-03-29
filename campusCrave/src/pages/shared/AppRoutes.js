@@ -9,11 +9,14 @@ const CategoryDetails = React.lazy(()=>import("../Category/CategoryDetails.jsx")
 const ManageRestaurantForm = React.lazy(()=> import("../../forms/manage-restaurant-form/ManageRestaurantForm.jsx"))
 const Home = React.lazy(() => import("../Home/Home.jsx"));
 const Login = React.lazy(() => import("../Login/LoginPage.jsx"));
+const SignUp = React.lazy(() => import("../SignUp/SignupPage.jsx"));
+
 
 
 const routes = [
   { path: "/", exact: true, name: "Home", component: Home },
   { path: "/login", exact: true, name: "Login", component: Login },
+  { path: "/signup", exact: true, name: "SignUp", component: SignUp },
   { path: "/manage-food-court" , exact : true , name :"ManageRestaurantForm" , component : ManageRestaurantForm},
   { path: "/category/:categoryId" , exact : true , name :"CategoryId" , component : CategoryDetails},
   { path: "/search" , exact : true , name :"searchbar" , component : SearchBar},

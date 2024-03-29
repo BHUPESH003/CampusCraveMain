@@ -42,7 +42,6 @@ const CategoryOverview = (props) => {
   //     (item) => item.name === props.data.category_name
   //   );
 
-  console.log(props);
   return (
     <div className="container-fluid overflow-hidden d-flex align-items-center justify-content-center m-0 p-0">
       <div className="text-center">

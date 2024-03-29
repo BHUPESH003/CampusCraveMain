@@ -16,8 +16,26 @@ const VendorDetails = (props) => {
   // //   setCartItems([...cc]);
   // // };
   const handleAddToCart = (data) => {
+    
     const currentCartItem = cartItems.find((x) => x.productId === data.item_id);
+    // Check if cart contains items and if they belong to a different vendor
+    const hasDifferentVendor = cartItems.some(
+      (item) => item.product.vendor_id !== data.vendor_id
+    );
+      
+    if (hasDifferentVendor) {
+      const confirmEmpty = window.confirm(
+        "Adding items from a different vendor will empty your cart. Do you want to continue?"
+      );
 
+      if (confirmEmpty) {
+        // Clear the cart by setting it to an empty array
+        setCartItems([]);
+        return
+      } else {
+        return; // Cancel adding items if user chooses not to empty the cart
+      }
+    }
     if (currentCartItem) {
       const updatedCartItems = cartItems.map((cartItem) => {
         if (cartItem.productId === data.item_id) {

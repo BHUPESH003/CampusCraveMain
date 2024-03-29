@@ -6,7 +6,7 @@ import { cartAtomNew } from "../../store";
 import { env } from "../../../env";
 import { loadStripe } from "@stripe/stripe-js";
 // import CircularJSON from "circular-json"; // Import CircularJSON library
-
+import { useNavigate } from "react-router-dom";
 export default function CheckOut() {
   const cartItems = useAtomValue(cartAtomNew);
   const calculateSubtotal = () => {
@@ -22,54 +22,99 @@ export default function CheckOut() {
       quantity: item.bagCount,
     }));
   }
+
+  // const calculateAverageVendorTime = (cartItems) => {
+  //   const totalVendorTime = cartItems.reduce(
+  //     (acc, item) => acc + item.product.vendor_avg_time,
+  //     0
+  //   );
+  //   return totalVendorTime / cartItems.length; // Calculate average
+  // };
+  // const calculateFoodReadyTime = (cartItems) => {
+  //   // Calculate average time from cartItems
+  //   const avgTimeInMinutes = calculateAverageVendorTime(cartItems);
+
+  //   // Calculate food ready time by adding avg time to current time
+  //   const currentTime = new Date();
+  //   const foodReadyTime = new Date(
+  //     currentTime.getTime() + avgTimeInMinutes * 60000
+  //   ); // Convert minutes to milliseconds
+
+  //   return foodReadyTime.toISOString();
+  // };
+  const calculateFoodReadyTime = (cartItems) => {
+    // Calculate average time from cartItems
+    const avgTimeInMinutes = cartItems[0].product.avg_time;
+
+    // Calculate food ready time by adding avg time to current time
+    const currentTime = new Date();
+    const foodReadyTime = new Date(
+      currentTime.getTime() + avgTimeInMinutes * 60000
+    ); // Convert minutes to milliseconds
+
+    // Return a valid date string
+    return foodReadyTime.toISOString();
+  };
+  console.log(cartItems);
   const transformedData = {
     products: {
-      orderId: 1,
-      userId: 3,
-      orderTime: "2024-02-13 12:00:00",
-      foodReadyTime: "2024-02-13 12:30:00",
-      price: 10.99,
-      comment: "No special requests",
-      vendorId: 6,
-      createdAt: "2024-02-14 05:50:41.968763",
+      orderTime: new Date().toISOString(), // Current time
+      foodReadyTime: calculateFoodReadyTime(cartItems), // Food ready time based on vendor avg time
+      price: calculateSubtotal(),
+      comment: "Special request by bhupesh",
+      vendorId: cartItems[0].product.vendor_id,
+      createdAt: new Date().toISOString(),
       paymentId: 2,
       paymentStatus: "Received",
+      // paymentStatus: "Pending",
       itemsOrdered: transformCartItems(cartItems),
     },
   };
 
-  const makePayment = async () => {
-    const stripe = await loadStripe(
-      "pk_test_51OydDmSGp7YEjcqZzGGwgEehYBbbGb5jKar9wIDDwEyK1liKLUv5aZY1XZr9jsu2WcgvwvPF4U83hibDdFZte1j7003TVYhJvi"
-    );
+  // const makePayment = async () => {
+  //   const tokenResponse = await fetch("http://localhost:3000/verify-token", {
+  //     method: "GET",
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
 
-    console.log(transformedData.products);
+  //   if (!response.ok) {
+  //     // Handle unauthorized access or invalid token
+  //     // Redirect to login page or display a message
+  //     return;
+  //   }
 
-    const response = await fetch(
-      "http://localhost:3000/create-checkout-session",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          products: transformedData,
-        }),
-      }
-    );
+  //   const { userId } = await tokenResponse.json();
+  //   const stripe = await loadStripe(
+  //     "pk_test_51OydDmSGp7YEjcqZzGGwgEehYBbbGb5jKar9wIDDwEyK1liKLUv5aZY1XZr9jsu2WcgvwvPF4U83hibDdFZte1j7003TVYhJvi"
+  //   );
 
-    const session = await response.json();
+  //   const response = await fetch(
+  //     "http://localhost:3000/create-checkout-session",
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         products: transformedData,
+  //       }),
+  //     }
+  //   );
 
-    console.log(session);
+  //   const session = await response.json();
 
-    const result = stripe.redirectToCheckout({
-      sessionId: session.id,
-    });
+  //   console.log(session);
 
-    if (result.error) {
-      console.log(result.error);
-    }
-  };
+  //   const result = stripe.redirectToCheckout({
+  //     sessionId: session.id,
+  //   });
+
+  //   if (result.error) {
+  //     console.log(result.error);
+  //   }
+  // };
 
   // async function createCheckoutSession(data) {
   //   try {
@@ -108,6 +153,79 @@ export default function CheckOut() {
   //     throw error;
   //   }
   // }
+  const navigate = useNavigate();
+  const verifyTokenAndProceedToCheckout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Redirect to login page or display a message
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/verify-token", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Handle unauthorized access or invalid token
+        // Redirect to login page or display a message
+        return;
+      }
+      const { userName } = await response.json();
+      makePayment(userName);
+    } catch (error) {
+      console.error("Error verifying token and proceeding to checkout:", error);
+    }
+  };
+
+  const makePayment = async (userName) => {
+    try {
+      // Proceed to checkout
+      const stripe = await loadStripe(
+        "pk_test_51OydDmSGp7YEjcqZzGGwgEehYBbbGb5jKar9wIDDwEyK1liKLUv5aZY1XZr9jsu2WcgvwvPF4U83hibDdFZte1j7003TVYhJvi"
+      );
+
+      console.log(transformedData.products);
+
+      const checkoutSessionResponse = await fetch(
+        "http://localhost:3000/create-checkout-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            userId: userName,
+            products: transformedData,
+          }),
+        }
+      );
+
+      const session = await checkoutSessionResponse.json();
+
+      console.log(session);
+
+      const result = stripe.redirectToCheckout({
+        sessionId: session.id,
+      });
+
+      if (result.error) {
+        console.log(result.error);
+      }
+    } catch (error) {
+      console.error("Error making payment:", error);
+    }
+  };
+
+  // Call this function when the user clicks on checkout
+  const handleCheckout = async () => {
+    await verifyTokenAndProceedToCheckout();
+  };
 
   return (
     <div className="container w-75 my-2">
@@ -142,7 +260,7 @@ export default function CheckOut() {
           type="button"
           className="btn btn-dark w-75"
           onClick={() => {
-            makePayment();
+            handleCheckout();
           }}
         >
           CHECKOUT
