@@ -9,10 +9,17 @@ import { CBadge, CButton } from "@coreui/react";
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const bagCount = useAtomValue(cartItemQuantityAtom);
-
+ 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleLogout = () =>{
+    localStorage.removeItem('token')
+  }
+
+  const token = localStorage.getItem("token");
+
   return (
     <nav className="navbar bg-body-tertiary shadow mb-3 sticky-top ">
       <div className="container-fluid d-flex justify-content-between">
@@ -30,8 +37,8 @@ function Header() {
             {" "}
             <CIcon icon={cilSearch} size="xxl" />{" "}
           </Link>
-
-          <div
+          {token ? (
+            <div
             className="dropdown"
             onMouseEnter={toggleDropdown}
             onMouseLeave={toggleDropdown}
@@ -44,33 +51,48 @@ function Header() {
               aria-labelledby="dropdownMenuButton"
             >
               <li>
-                <a className="dropdown-item body-font" href="/my-account">
+                <Link className="dropdown-item body-font" to="/my-account">
                   Profile
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   className="dropdown-item body-font"
-                  href="/my-account/orders"
+                  to="/my-account/orders"
                 >
                   Orders
-                </a>
+                </Link>
               </li>
-              <li>
+              {/* <li>
                 <a
                   className="dropdown-item body-font"
                   href="/my-account/favourites"
                 >
                   Favourites
                 </a>
-              </li>
+              </li> */}
               <li>
-                <a className="dropdown-item body-font" href="/logout">
+                <Link className="dropdown-item body-font" onClick={handleLogout} to="/login">
                   Logout
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
+
+
+          ):(
+            <Link to="/login" className="text-body mt-1">
+            {" "}
+            <CIcon icon={cilUser} size="xxl" />{" "}
+            <span className="body-font text-black">Log In</span>
+          </Link>
+
+          )}
+          
+          
+          
+
+          
           <Link to="/checkout" className="text-body">
             <CButton className="border-0 bg-light text-black position-relative">
               <CIcon icon={cilCart} size="xxl" />
