@@ -3,12 +3,12 @@ const categoriesRouter = express.Router();
 const client = require("../config/index");
 const z = require("zod");
 const authenticateToken = require("../MiddleWares/authMiddleWare");
-
+   
 categoriesRouter.get("/", async (req, res) => {
   try {
     const result = await client.query("SELECT * FROM category");
     const categories = result.rows;
-   
+    
     res.json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);

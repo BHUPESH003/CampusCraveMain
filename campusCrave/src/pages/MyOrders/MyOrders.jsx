@@ -12,12 +12,12 @@ export default function MyOrders() {
             <span className="body-font text-muted fw-semibold">₹ Price </span>
             
             
-            <Button
+            {/* <Button
               className="bg-light text-black border-1 border-secondary rounded"
               
             >
               <span style={{ fontSize: "1.2rem" }}>Reorder</span>
-            </Button>
+            </Button> */}
           </span>
         </div>
         <div className="body-font">VendorName</div>
@@ -41,12 +41,12 @@ export default function MyOrders() {
             <span className="body-font text-muted fw-semibold">₹ Price </span>
             
             
-            <Button
+            {/* <Button
               className="bg-light text-black border-1 border-secondary rounded"
               
             >
               <span style={{ fontSize: "1.2rem" }}>Reorder</span>
-            </Button>
+            </Button> */}
           </span>
         </div>
         <div className="body-font">VendorName</div>
@@ -70,12 +70,12 @@ export default function MyOrders() {
             <span className="body-font text-muted fw-semibold">₹ Price </span>
             
             
-            <Button
+            {/* <Button
               className="bg-light text-black border-1 border-secondary rounded"
               
             >
               <span style={{ fontSize: "1.2rem" }}>Reorder</span>
-            </Button>
+            </Button> */}
           </span>
         </div>
         <div className="body-font">VendorName</div>
@@ -99,12 +99,12 @@ export default function MyOrders() {
             <span className="body-font text-muted fw-semibold">₹ Price </span>
             
             
-            <Button
+            {/* <Button
               className="bg-light text-black border-1 border-secondary rounded"
               
             >
               <span style={{ fontSize: "1.2rem" }}>Reorder</span>
-            </Button>
+            </Button> */}
           </span>
         </div>
         <div className="body-font">VendorName</div>

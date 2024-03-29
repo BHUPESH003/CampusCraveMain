@@ -12,7 +12,7 @@ export default function SuccessPage() {
           className="text-center"
           src={image}
           style={{ width: "1200px", height: "400px" }}
-        />
+        /> 
       </div>
       <span className="heading  text-center">Payment Successful</span>
       <br />
