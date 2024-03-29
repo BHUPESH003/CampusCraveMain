@@ -28,9 +28,9 @@ export default function MyAccount() {
                 <span className='m-5' style={{fontFamily:"cursive"}}>Phone No </span>
                 <span style={{fontFamily:"cursive"}}>Email ID</span>
                 </div>
-                <div className=' col-6 text-center align-self-center ' >
+                {/* <div className=' col-6 text-center align-self-center ' >
                     <button type='button' className='btn btn-primary border '><span className='sub-heading'>Edit Profile</span> </button>
-                </div>
+                </div> */}
 
             </div>
             <div className='cart mx-5'>
@@ -71,7 +71,7 @@ export default function MyAccount() {
                 My Orders
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item className="mt-3 sub-heading">
+            {/* <Nav.Item className="mt-3 sub-heading">
               <Nav.Link
                 eventKey="second"
                 className={`text-body ${activeTab === "second" ? "fw-bolder" : ""
@@ -97,7 +97,7 @@ export default function MyAccount() {
               >
                 Settings
               </Nav.Link>
-            </Nav.Item>
+            </Nav.Item> */}
             
             </Nav>
         </Col>
@@ -106,7 +106,7 @@ export default function MyAccount() {
             <Tab.Pane eventKey="first" className="py-3">
               <MyOrders />
             </Tab.Pane>
-            <Tab.Pane eventKey="second" className="py-3">
+            {/* <Tab.Pane eventKey="second" className="py-3">
               <Favourites />
             </Tab.Pane>
             <Tab.Pane eventKey="third" className="py-3">
@@ -114,7 +114,7 @@ export default function MyAccount() {
             </Tab.Pane>
             <Tab.Pane eventKey="fourth" className="py-3">
               <Settings/>
-            </Tab.Pane>
+            </Tab.Pane> */}
             
           </Tab.Content>
         </Col>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import image from "../../assets/food_1.png";
 import { Link } from "react-router-dom";
 import CIcon from "@coreui/icons-react";
@@ -7,9 +7,11 @@ import { Button } from "react-bootstrap";
 import { handleCartService } from "../services/internalServices/handlecart";
 import { useAtom } from "jotai";
 import { cartAtomNew } from "../../store";
+import CartToast from "../../Components/CartToast/CartToast";
 
 const VendorDetails = (props) => {
   const [cartItems, setCartItems] = useAtom(cartAtomNew);
+  const [showToast, setShowToast] = useState(false);
   // const handleAddToCart = (data) => {
   //   // console.log(cartItems)
   // //   let cc = handleCartService.updateCartApi(cartItems, data);
@@ -60,9 +62,18 @@ const VendorDetails = (props) => {
           totalAmount: data.price,
         },
       ]);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
   };
   return (
     <div class="row border-bottom border-2 my-2">
+      <CartToast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        itemName={props.item_name} 
+      />
       <div className="col-9 align-self-center">
         <div>
           <span className="body-font fw-bold">{props.item_name}</span> <br />
@@ -82,8 +93,12 @@ const VendorDetails = (props) => {
             >
               <span style={{ fontSize: "1.2rem" }}>ADD +</span>
             </Button>
+            
+            
           </span>
         </div>
+        
+        
         <div className="body-font">{props.item_description}</div>
       </div>
       <div className="col-3 d-flex align-items-center justify-content-center  position-relative">
