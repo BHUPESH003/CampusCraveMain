@@ -55,7 +55,6 @@ export default function CheckOut() {
     // Return a valid date string
     return foodReadyTime.toISOString();
   };
-  console.log(cartItems);
   const transformedData = {
     products: {
       orderTime: new Date().toISOString(), // Current time
