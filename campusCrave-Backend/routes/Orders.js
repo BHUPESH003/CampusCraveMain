@@ -12,6 +12,55 @@ function calculateAverageRating(ratings) {
   const totalRating = ratings.reduce((acc, rating) => acc + rating.rating, 0);
   return totalRating / ratings.length;
 }
+orders.get("/:username", async (req, res) => {
+  try {
+    // Extract username from request parameters
+    const { username } = req.params;
+
+    // Query to fetch orders for the specified username
+    const query = `
+    SELECT 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username,
+        json_agg(json_build_object('item_id', oi.itemid, 'item_name', oi.itemname, 'item_price', oi.price, 'quantity', oi.quantity)) AS items
+    FROM 
+        placed_order po
+    JOIN 
+    itemsordered oi ON po.id = oi.orderid
+    WHERE 
+        po.username = $1
+    GROUP BY 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username;
+  `;
+  
+
+    // Execute the query
+    const { rows } = await client.query(query, [username]);
+
+    // Return fetched orders as response
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 orders.post("/:orderId/review", authenticateToken, async (req, res) => {
   const orderId = req.params.orderId;
 
@@ -83,8 +132,7 @@ orders.post("/:orderId/review", authenticateToken, async (req, res) => {
   }
 });
 
-async function storeOrder({userId,products}) {
- 
+async function storeOrder({ userId, products }) {
   // Check if an identical order already exists
   const existingOrderQuery = `
     SELECT id FROM placed_order 
@@ -107,9 +155,12 @@ async function storeOrder({userId,products}) {
     products.products.vendorId,
     products.products.createdAt,
     products.products.paymentId,
-    products.products.paymentStatus
+    products.products.paymentStatus,
   ];
-  const existingOrderResult = await client.query(existingOrderQuery, existingOrderValues);
+  const existingOrderResult = await client.query(
+    existingOrderQuery,
+    existingOrderValues
+  );
 
   // If an identical order already exists, return its ID
   if (existingOrderResult.rows.length > 0) {
@@ -131,17 +182,20 @@ async function storeOrder({userId,products}) {
     products.products.vendorId,
     products.products.createdAt,
     products.products.paymentId,
-    products.products.paymentStatus
+    products.products.paymentStatus,
   ];
   const result = await client.query(query, values);
   const orderId = result.rows[0].id;
 
   // Insert itemsOrdered into the database
   for (const item of products.products.itemsOrdered) {
-    await client.query(`
+    await client.query(
+      `
       INSERT INTO itemsOrdered (orderId, itemId, itemName, price, quantity)
       VALUES ($1, $2, $3, $4, $5);
-    `, [orderId, item.itemId, item.itemName, item.price, item.quantity]);
+    `,
+      [orderId, item.itemId, item.itemName, item.price, item.quantity]
+    );
   }
 
   return orderId;
@@ -161,13 +215,12 @@ async function getOrder(orderId) {
 
   const order = orderResult.rows[0];
   const itemsOrdered = itemsResult.rows;
-  
+
   // Combine order details with itemsOrdered
   order.itemsOrdered = itemsOrdered;
 
   return order;
 }
-
 
 async function updateOrderStatus(orderId, status) {
   try {
@@ -178,10 +231,10 @@ async function updateOrderStatus(orderId, status) {
       WHERE id = $2
       RETURNING id, payment_status;
     `;
-    console.log("OrderId in update func:",orderId)
+    console.log("OrderId in update func:", orderId);
     const values = [status, orderId];
     const result = await client.query(query, values);
-   
+
     // Return the orderId and status
     // return {
     //   orderId: result.rows[0].id,
@@ -194,4 +247,4 @@ async function updateOrderStatus(orderId, status) {
   }
 }
 
-module.exports = {storeOrder,getOrder,updateOrderStatus};
+module.exports = { orders, storeOrder, getOrder, updateOrderStatus };
