@@ -162,7 +162,7 @@ export default function CheckOut() {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/verify-token", {
+      const response = await fetch("http://localhost:3001/verify-token", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -191,7 +191,7 @@ export default function CheckOut() {
       console.log(transformedData.products);
 
       const checkoutSessionResponse = await fetch(
-        "http://localhost:3000/create-checkout-session",
+        "http://localhost:3001/create-checkout-session",
         {
           method: "POST",
           headers: {

@@ -20,7 +20,9 @@ const stripe = new Stripe(process.env.STRIPE_KEY, {
 
 app.get("/verify-token", authenticateToken, (req, res) => {
   const userName = req.user.username; // Assuming userId is included in the token payload
-  res.json({ userName });
+  const email = req.user.email;
+  
+  res.json({ userName , email  });
 });
 
 // Endpoint to create a checkout session
@@ -100,7 +102,7 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

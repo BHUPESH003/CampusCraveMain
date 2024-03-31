@@ -33,8 +33,9 @@ const AppLayout = (props) => {
           </Routes>{" "}
           <Outlet />{" "}
         </BrowserRouter>
+        <Footer />
       </Suspense>
-      <Footer />
+      
     </>
   );
 };
