@@ -21,7 +21,9 @@ const stripe = new Stripe(process.env.STRIPE_KEY, {
 
 app.get("/verify-token", authenticateToken, (req, res) => {
   const userName = req.user.username; // Assuming userId is included in the token payload
-  res.json({ userName });
+  const email = req.user.email;
+  
+  res.json({ userName , email  });
 });
 app.get("/vendor/verify-token", verifyToken, (req, res) => {
   const vendorId = req.vendorId;

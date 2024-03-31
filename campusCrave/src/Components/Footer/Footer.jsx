@@ -94,7 +94,7 @@ function Footer() {
       
     </div>
   
-    <div className="text-center p-3" >
+    <div className="text-center p-3 body-font" >
       © 2024 
       
     </div>
