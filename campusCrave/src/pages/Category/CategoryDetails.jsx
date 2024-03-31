@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import FoodItem from "../../Components/FoodItem/FoodItem";
+import { env } from "../../../env";
 
 export default function CategoryDetails() {
   const { categoryId } = useParams();
@@ -11,7 +12,7 @@ export default function CategoryDetails() {
     const fetchMenuItems = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3000/api/v1/categories/${categoryId}/menuItems`
+          `${env.baseUrl}/categories/${categoryId}/menuItems`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch menu items");

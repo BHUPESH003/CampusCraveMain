@@ -31,7 +31,7 @@ function Header() {
         </Link>
         <div
           className="d-flex justify-content-between"
-          style={{ width: "23vw" }}
+          style={{ width: "53vw" }}
         >
           <Link to="/search" className="text-body mt-1">
             {" "}

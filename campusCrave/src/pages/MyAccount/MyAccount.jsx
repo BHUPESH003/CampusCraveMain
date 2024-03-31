@@ -20,6 +20,9 @@ import { env } from "../../../env";
 export default function MyAccount() {
   const [activeTab, setActiveTab] = useState("first");
   const [orders, setOrders] = useState([]);
+  const [username , setUsername] = useState("");
+  const [email , setEmail] = useState("")
+  
 
   const handleTabSelect = (selectedTab) => {
     if (selectedTab) {
@@ -50,7 +53,7 @@ export default function MyAccount() {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/verify-token", {
+        const response = await fetch("http://localhost:3001/verify-token", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -62,7 +65,10 @@ export default function MyAccount() {
           // Redirect to login page or display a message
           return;
         }
-        const { userName } = await response.json();
+        const { userName ,  email , phone_no  } = await response.json();
+        setUsername(userName);
+        setEmail(email);
+       
         fetchOrders(userName);
       } catch (error) {
         console.error(
@@ -81,13 +87,11 @@ export default function MyAccount() {
       <div className="row p-4 ">
         <div className="col-6  text-center heading ">
           <span style={{ fontFamily: "cursive" }} className="heading">
-            User Name
+            {username}
           </span>
           <br />
-          <span className="m-5" style={{ fontFamily: "cursive" }}>
-            Phone No{" "}
-          </span>
-          <span style={{ fontFamily: "cursive" }}>Email ID</span>
+          
+          <span style={{ fontFamily: "cursive" }}>{email}</span>
         </div>
         {/* <div className=' col-6 text-center align-self-center ' >
                     <button type='button' className='btn btn-primary border '><span className='sub-heading'>Edit Profile</span> </button>
@@ -161,8 +165,8 @@ export default function MyAccount() {
               </Nav>
             </Col>
             <Col sm={9}>
-              <Tab.Content className="w-85 d-flex flex-column justify-content-center">
-                <Tab.Pane eventKey="first" className="py-3">
+              <Tab.Content className=" d-flex flex-column justify-content-center overflow-auto" style={{maxWidth: "1400px", maxHeight:"400px" }}>
+                <Tab.Pane eventKey="first" >
                   {orders.map((order) => (
                     <MyOrders {...order} />
                   ))}

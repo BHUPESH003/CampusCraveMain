@@ -31,7 +31,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:3000/api/v1/user/login", {
+      const response = await fetch("http://localhost:3001/api/v1/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export default function LoginPage() {
       
 
       localStorage.setItem("token", data.token);
-      navigate('/checkout')
+      navigate('/')
       // Redirect or navigate to another page
     } catch (error) {
       console.error("Login error:", error.message);
