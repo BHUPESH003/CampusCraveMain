@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const { z } = require("zod");
 const client = require("../config/index");
 const { v4: uuidv4 } = require("uuid");
-const {verifyToken} = require("../MiddleWares/authMiddleWare");
+const { verifyToken } = require("../MiddleWares/authMiddleWare");
 
 // const vendorSchema = z.object({
 //   username: z.string().min(3),
@@ -83,7 +83,7 @@ vendorRouter.post("/login", async (req, res) => {
 
     // Create a JWT token for the vendor
     const token = jwt.sign(
-      { vendorId: vendor.vendor_id, },
+      { vendorId: vendor.vendor_id },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -279,12 +279,10 @@ vendorRouter.delete("/item/:itemId", verifyToken, async (req, res) => {
   }
 });
 
-
 vendorRouter.get("/vendorOrders/:vendorId", async (req, res) => {
   try {
     // Extract username from request parameters
     const { vendorId } = req.params;
-   
 
     // Query to fetch orders for the specified username
     const query = `
@@ -329,14 +327,13 @@ vendorRouter.get("/vendorOrders/:vendorId", async (req, res) => {
   }
 });
 
-
 vendorRouter.get("/vendorOrders/orderDetails/:orderId", async (req, res) => {
   try {
     // Extract orderId from request parameters
-    console.log("here")
+    console.log("here");
     const { orderId } = req.params;
-    console.log(orderId)
-   
+    console.log(orderId);
+
     // Query to fetch data for the specified order ID
     const query = `
     SELECT 
@@ -369,7 +366,7 @@ vendorRouter.get("/vendorOrders/orderDetails/:orderId", async (req, res) => {
         po.payment_status,
         po.username;
   `;
-    
+
     // Execute the query
     const { rows } = await client.query(query, [orderId]);
 
@@ -383,6 +380,78 @@ vendorRouter.get("/vendorOrders/orderDetails/:orderId", async (req, res) => {
   } catch (error) {
     console.error("Error fetching order:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+// Get categories associated with a particular vendor
+vendorRouter.get("/:vendorId/categories", async (req, res) => {
+  try {
+    const vendorId = req.params.vendorId;
+    const query = `SELECT category.id, category.category_name
+                   FROM category
+                   INNER JOIN VendorCategories ON category.id = VendorCategories.category_id
+                   WHERE VendorCategories.vendor_id = $1`;
+    // Execute the query
+    const { rows } = await client.query(query, [vendorId]);
+    // Return fetched orders as response
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Update categories associated with a particular vendor
+vendorRouter.put("/:vendorId/categories/:categoryId", async (req, res) => {
+  try {
+    const vendorId = req.params.vendorId;
+    const categoryId = req.params.categoryId;
+    const query = "UPDATE VendorCategories SET id = $1 WHERE vendor_id = $2 AND id = $3";
+    await client.query(query, [req.body.newCategoryId, vendorId, categoryId]);
+    res.sendStatus(200); // OK
+  } catch (error) {
+    console.error("Error updating category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Delete a category associated with a particular vendor
+vendorRouter.delete("/:vendorId/categories/:categoryId", async (req, res) => {
+  try {
+    const vendorId = req.params.vendorId;
+    const categoryId = req.params.categoryId;
+    const query = "DELETE FROM VendorCategories WHERE vendor_id = $1 AND id = $2";
+    await client.query(query, [vendorId, categoryId]);
+    res.sendStatus(204); // No Content
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Add a category to a particular vendor
+vendorRouter.post("/:vendorId/categories", async (req, res) => {
+  try {
+    const vendorId = req.params.vendorId;
+    const categoryName = req.body.categoryName;
+    const checkQuery = "SELECT id FROM category WHERE category_name = $1";
+    const { rows } = await client.query(checkQuery, [categoryName]);
+    if (rows.length === 0) {
+      // Category does not exist, insert new category
+      const insertQuery = "INSERT INTO category (category_name) VALUES ($1) RETURNING id";
+      const insertedCategory = await client.query(insertQuery, [categoryName]);
+      const categoryId = insertedCategory.rows[0].id;
+      const vendorCategoryQuery = "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
+      await client.query(vendorCategoryQuery, [vendorId, categoryId]);
+    } else {
+      // Category exists, associate with the vendor
+      const categoryId = rows[0].id;
+      const vendorCategoryQuery = "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
+      await client.query(vendorCategoryQuery, [vendorId, categoryId]);
+    }
+    res.sendStatus(201); // Created
+  } catch (error) {
+    console.error("Error adding category:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
