@@ -18,5 +18,27 @@ const jwt = require('jsonwebtoken');
     });
 
 };
+const verifyToken = (req, res, next) => {
+  // Get token from headers, query parameters, or cookies
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  // If token is not found
+  if (!token) {
+    return res.status(401).json({ message: 'Token is missing' });
+  }
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Extract vendorId from decoded token
+    const { vendorId } = decoded;
+    console.log(decoded)
+    // Attach vendorId to request object for use in subsequent middleware/routes
+    req.vendorId = vendorId;
+    // Call next middleware
+    next();
+  } catch (error) {
+    // If token is invalid or expired
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
 
-module.exports = authenticateToken;
+module.exports = {authenticateToken,verifyToken};

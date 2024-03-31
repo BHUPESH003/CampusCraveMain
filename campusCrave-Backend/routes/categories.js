@@ -2,7 +2,7 @@ const express = require("express");
 const categoriesRouter = express.Router();
 const client = require("../config/index");
 const z = require("zod");
-const authenticateToken = require("../MiddleWares/authMiddleWare");
+const {authenticateToken} = require("../MiddleWares/authMiddleWare");
    
 categoriesRouter.get("/", async (req, res) => {
   try {

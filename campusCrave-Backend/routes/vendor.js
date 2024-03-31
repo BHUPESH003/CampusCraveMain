@@ -5,8 +5,7 @@ const bcrypt = require("bcrypt");
 const { z } = require("zod");
 const client = require("../config/index");
 const { v4: uuidv4 } = require("uuid");
-const authenticateToken = require("../MiddleWares/authMiddleWare");
-
+const {verifyToken} = require("../MiddleWares/authMiddleWare");
 
 // const vendorSchema = z.object({
 //   username: z.string().min(3),
@@ -65,7 +64,7 @@ vendorRouter.post("/login", async (req, res) => {
 
     // Retrieve vendor information from the vendors table
     const result = await client.query(
-      "SELECT * FROM vendors v JOIN users u ON v.user_id = u.user_id WHERE u.username = $1",
+      "SELECT * FROM vendors v JOIN vendorLogin u ON v.user_id = u.user_id WHERE u.username = $1",
       [username]
     );
 
@@ -84,7 +83,7 @@ vendorRouter.post("/login", async (req, res) => {
 
     // Create a JWT token for the vendor
     const token = jwt.sign(
-      { userId: vendor.user_id, userType: vendor.user_type },
+      { vendorId: vendor.vendor_id, },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -102,7 +101,6 @@ vendorRouter.post("/register", async (req, res) => {
     username,
     password,
     email,
-    phoneNo,
     vendorName,
     vendorDesc,
     imagePath,
@@ -112,7 +110,7 @@ vendorRouter.post("/register", async (req, res) => {
   try {
     // Check if the username or email is already registered
     const existingUser = await client.query(
-      "SELECT * FROM users WHERE username = $1 OR email = $2",
+      "SELECT * FROM vendorLogin WHERE username = $1 OR email = $2",
       [username, email]
     );
     if (existingUser.rows.length > 0) {
@@ -125,22 +123,22 @@ vendorRouter.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a unique User_ID and Vendor_ID
-    const userId = uuidv4();
-    const vendorId = uuidv4();
+    const userId = Math.floor(Math.random() * 100) + 1;
+    const vendorId = Math.floor(Math.random() * 100) + 1;
 
     // Start a transaction to insert user and vendor data
     await client.query("BEGIN");
 
     // Insert user data into the users table
     await client.query(
-      "INSERT INTO users (User_ID, Username, Password, Email, Phone_No, UserType) VALUES ($1, $2, $3, $4, $5, $6)",
-      [userId, username, hashedPassword, email, phoneNo, "Vendor"]
+      "INSERT INTO vendorLogin (User_ID, Username, Password, Email) VALUES ($1, $2, $3, $4)",
+      [userId, username, hashedPassword, email]
     );
 
     // Insert vendor data into the vendors table
     await client.query(
       "INSERT INTO vendors (Vendor_ID, User_ID, Vendor_Name, Vendor_Desc, Image_Path,avg_time) VALUES ($1, $2, $3, $4, $5,$6)",
-      [vendorId, userId, vendorName, vendorDesc, imagePath,avg_time]
+      [vendorId, userId, vendorName, vendorDesc, imagePath, avg_time]
     );
 
     // Commit the transaction
@@ -171,7 +169,7 @@ vendorRouter.get("/all", async (req, res) => {
 });
 // Get details of one specific vendor by ID
 
-vendorRouter.get("/:vendorId", async (req, res) => {
+vendorRouter.get("/:vendorId/items", async (req, res) => {
   const vendorId = req.params.vendorId;
 
   try {
@@ -240,7 +238,7 @@ vendorRouter.post("/:vendorId/item", async (req, res) => {
   }
 });
 
-vendorRouter.put("/item/:itemId",authenticateToken, async (req, res) => {
+vendorRouter.put("/item/:itemId", verifyToken, async (req, res) => {
   const itemId = req.params.itemId;
   const { itemName, itemDesc, itemPrice, itemImage } = req.body;
 
@@ -264,7 +262,7 @@ vendorRouter.put("/item/:itemId",authenticateToken, async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-vendorRouter.delete("/item/:itemId",authenticateToken, async (req, res) => {
+vendorRouter.delete("/item/:itemId", verifyToken, async (req, res) => {
   const itemId = req.params.itemId;
 
   try {
@@ -278,6 +276,113 @@ vendorRouter.delete("/item/:itemId",authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error executing query", err);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+
+vendorRouter.get("/vendorOrders/:vendorId", async (req, res) => {
+  try {
+    // Extract username from request parameters
+    const { vendorId } = req.params;
+   
+
+    // Query to fetch orders for the specified username
+    const query = `
+    SELECT 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username,
+        json_agg(json_build_object('item_id', oi.itemid, 'item_name', oi.itemname, 'item_price', oi.price, 'quantity', oi.quantity)) AS items
+    FROM 
+        placed_order po
+    JOIN 
+    itemsordered oi ON po.id = oi.orderid
+    WHERE 
+        po.vendor_id = $1
+    GROUP BY 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username;
+  `;
+
+    // Execute the query
+    const { rows } = await client.query(query, [vendorId]);
+    // Return fetched orders as response
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+vendorRouter.get("/vendorOrders/orderDetails/:orderId", async (req, res) => {
+  try {
+    // Extract orderId from request parameters
+    console.log("here")
+    const { orderId } = req.params;
+    console.log(orderId)
+   
+    // Query to fetch data for the specified order ID
+    const query = `
+    SELECT 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username,
+        json_agg(json_build_object('item_id', oi.itemid, 'item_name', oi.itemname, 'item_price', oi.price, 'quantity', oi.quantity)) AS items
+    FROM 
+        placed_order po
+    JOIN 
+        itemsordered oi ON po.id = oi.orderid
+    WHERE 
+        po.id = $1
+    GROUP BY 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username;
+  `;
+    
+    // Execute the query
+    const { rows } = await client.query(query, [orderId]);
+
+    // Check if any rows are returned
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Return fetched order data as response
+    res.json(rows[0]); // Assuming there's only one order with the given ID
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

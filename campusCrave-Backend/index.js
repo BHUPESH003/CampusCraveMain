@@ -5,7 +5,8 @@ const { getOrder, storeOrder, updateOrderStatus } = require("./routes/Orders");
 
 const rootRouter = require("./routes/index");
 const Stripe = require("stripe");
-const authenticateToken = require("./MiddleWares/authMiddleWare");
+const { authenticateToken } = require("./MiddleWares/authMiddleWare");
+const { verifyToken } = require("./MiddleWares/authMiddleWare");
 
 const app = express();
 
@@ -22,6 +23,11 @@ app.get("/verify-token", authenticateToken, (req, res) => {
   const userName = req.user.username; // Assuming userId is included in the token payload
   res.json({ userName });
 });
+app.get("/vendor/verify-token", verifyToken, (req, res) => {
+  const vendorId = req.vendorId;
+  // Perform actions with vendorId
+  res.json({ vendorId });
+});
 
 // Endpoint to create a checkout session
 app.post("/create-checkout-session", async (req, res) => {
@@ -31,6 +37,7 @@ app.post("/create-checkout-session", async (req, res) => {
 
     // Store the order in the database and retrieve the order details
     const orderId = await storeOrder({ products, userId });
+    console.log(orderId);
     const order = await getOrder(orderId);
 
     // Prepare line items for the checkout session
@@ -70,9 +77,9 @@ app.post("/webhook", async (req, res) => {
     // Extract the event data from the request body
     const event = req.body;
     // console.log(event.data.object.metadata.orderId);
-    const orderId=event.data.object.metadata.orderId;
-    console.log(event.data.object.metadata)
-    console.log(orderId)
+    const orderId = event.data.object.metadata.orderId;
+    console.log(event.data);
+
     // Handle different types of events
     switch (event.type) {
       case "customer.created":
@@ -100,7 +107,7 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

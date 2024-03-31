@@ -5,7 +5,7 @@ const client = require("../config/index");
 const z = require("zod");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const authenticateToken = require("../MiddleWares/authMiddleWare");
+const {authenticateToken} = require("../MiddleWares/authMiddleWare");
 
 const registrationSchema = z.object({
   username: z.string().min(3),

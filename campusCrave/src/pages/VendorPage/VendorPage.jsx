@@ -16,7 +16,7 @@ export default function VendorPage() {
   useEffect(() => {
     // Fetch categories from the backend API
     axios
-      .get(`${env.baseUrl}/vendor/${vendorId}`)
+      .get(`${env.baseUrl}/vendor/${vendorId}/items`)
       .then((response) => setVendorDetails(response.data))
       .catch((error) => console.error("Error fetching categories:", error));
   }, []);

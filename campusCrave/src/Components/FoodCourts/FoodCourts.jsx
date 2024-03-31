@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import FoodCourtsOverview from "./FoodCourtsOverview";
 import { Col } from "react-bootstrap";
+import { env } from "../../../env";
 
 export default function FoodCourts() {
   const [vendorsWithRatings, setVendorsWithRatings] = useState([]);
@@ -9,7 +10,7 @@ export default function FoodCourts() {
   useEffect(() => {
     // Fetch vendors with ratings
     axios
-      .get("http://localhost:3000/api/v1/vendor/all")
+      .get(`${env.baseUrl}/vendor/all`)
       .then((response) => setVendorsWithRatings(response.data))
       .catch((error) =>
         console.error("Error fetching vendors with ratings:", error)

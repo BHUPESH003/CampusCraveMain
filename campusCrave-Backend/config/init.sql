@@ -7,10 +7,17 @@ CREATE TABLE users (
         UserType VARCHAR(50) CHECK (UserType IN ('Student', 'Vendor')),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+CREATE TABLE vendorLogin(
+  User_Id SERIAL PRIMARY KEY,
+  Username VARCHAR(255) NOT NULL,
+  Password VARCHAR(255) NOT NULL,
+  Email VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
+)
 CREATE TABLE vendors (
     Vendor_ID SERIAL PRIMARY KEY,
-    User_ID INTEGER REFERENCES users(User_ID) UNIQUE,
+    User_ID INTEGER REFERENCES vendorLogin(User_ID) UNIQUE,
     Vendor_Name VARCHAR(255) NOT NULL,
     Vendor_Desc TEXT,
     Image_Path VARCHAR(255)   

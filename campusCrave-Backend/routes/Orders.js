@@ -3,7 +3,7 @@ const orders = express.Router();
 
 const client = require("../config/index");
 
-const authenticateToken = require("../MiddleWares/authMiddleWare");
+const {authenticateToken} = require("../MiddleWares/authMiddleWare");
 
 // Function to calculate the average rating from an array of item ratings
 function calculateAverageRating(ratings) {
@@ -49,11 +49,58 @@ orders.get("/:username", async (req, res) => {
         po.payment_status,
         po.username;
   `;
-  
 
     // Execute the query
     const { rows } = await client.query(query, [username]);
 
+    // Return fetched orders as response
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+orders.get("/vendorOrders/:vendorId", async (req, res) => {
+  try {
+    // Extract username from request parameters
+    const { vendorId } = req.params;
+   
+
+    // Query to fetch orders for the specified username
+    const query = `
+    SELECT 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username,
+        json_agg(json_build_object('item_id', oi.itemid, 'item_name', oi.itemname, 'item_price', oi.price, 'quantity', oi.quantity)) AS items
+    FROM 
+        placed_order po
+    JOIN 
+    itemsordered oi ON po.id = oi.orderid
+    WHERE 
+        po.vendor_id = $1
+    GROUP BY 
+        po.id,
+        po.order_time,
+        po.food_ready_time,
+        po.price,
+        po.comment,
+        po.vendor_id,
+        po.created_at,
+        po.payment_id,
+        po.payment_status,
+        po.username;
+  `;
+
+    // Execute the query
+    const { rows } = await client.query(query, [vendorId]);
     // Return fetched orders as response
     res.json(rows);
   } catch (error) {
