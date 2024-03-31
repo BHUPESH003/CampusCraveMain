@@ -1,8 +1,12 @@
 import React from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import Login from 'src/views/pages/login/Login'
 
 const DefaultLayout = () => {
+  const token=localStorage.getItem('token')
   return (
+    <>
+    {token ?
     <div>
       <AppSidebar />
       <div className="wrapper d-flex flex-column min-vh-100">
@@ -12,7 +16,9 @@ const DefaultLayout = () => {
         </div>
         <AppFooter />
       </div>
-    </div>
+    </div> : <Login/>
+  }
+    </>
   )
 }
 

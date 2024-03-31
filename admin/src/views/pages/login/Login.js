@@ -16,13 +16,17 @@ import {
 import CIcon from "@coreui/icons-react";
 import { cilLockLocked, cilUser } from "@coreui/icons";
 import { envKey } from "src/Url";
+import { atom, useAtom } from "jotai";
+
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(null); // State to store login error
   const history = useNavigate();
 
   const handleLogin = async () => {
+
     try {
       const response = await fetch(`${envKey.BASE_URL}/vendor/login`, {
         method: "POST",
@@ -45,7 +49,7 @@ const Login = () => {
       history("/dashboard");
     } catch (error) {
       console.error("Login failed:", error.message);
-      // Handle login failure (e.g., show error message)
+      setError(error.message); // Set error state to display error message
     }
   };
 
@@ -62,6 +66,11 @@ const Login = () => {
                     <p className="text-body-secondary">
                       Sign In to your account
                     </p>
+                    {error && ( // Render error message if error state is not null
+                      <div className="alert alert-danger" role="alert">
+                        {error}
+                      </div>
+                    )}
                     <CInputGroup className="mb-3">
                       <CInputGroupText>
                         <CIcon icon={cilUser} />
