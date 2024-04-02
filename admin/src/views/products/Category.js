@@ -22,7 +22,7 @@ function Category() {
         </div>
         <div className="col-3">
           <CButton color="primary" onClick={handleAddClick}>
-            <CIcon icon={cilPlus} /> Add New Product
+            <CIcon icon={cilPlus} /> Add New Category
           </CButton>
         </div>
       </div>

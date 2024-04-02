@@ -34,9 +34,9 @@ function AllOrders() {
           ))}
         </div>
         <div className="col-3">
-          <CButton color="primary" onClick={handleAddClick}>
+          {/* <CButton color="primary" onClick={handleAddClick}>
             <CIcon icon={cilPlus} /> Add New Order
-          </CButton>
+          </CButton> */}
         </div>
       </div>
       <div className="col mt-5">
