@@ -9,12 +9,12 @@ function Category() {
   const navigate = useNavigate();
 
   const handleAddClick = () => {
-    navigate("/products/add/new");
+    navigate("/categories/add/new");
   };
 
   return (
     <div className="container-fluid">
-      <h3>All Products</h3>
+      <h3>All Categories</h3>
       <div className="row">
         <div className="col-9">
           <CButton variant="ghost">SortBy</CButton>
@@ -22,7 +22,7 @@ function Category() {
         </div>
         <div className="col-3">
           <CButton color="primary" onClick={handleAddClick}>
-            <CIcon icon={cilPlus} /> Add New Product
+            <CIcon icon={cilPlus} /> Add New Category
           </CButton>
         </div>
       </div>

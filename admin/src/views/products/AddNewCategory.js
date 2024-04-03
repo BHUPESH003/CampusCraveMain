@@ -10,21 +10,21 @@ import {
   CFormTextarea,
   CFormCheck,
 } from "@coreui/react";
-import { dataService } from "../../services/apiServices/dataService";
-import AWS from "aws-sdk";
-const AddNewOrder = () => {
-  AWS.config.update({
-    accessKeyId: "YOUR_ACCESS_KEY_ID",
-    secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
-    region: "YOUR_AWS_REGION",
-  });
+import { useNavigate } from "react-router-dom";
+// import { dataService } from "../../services/apiServices/dataService";
+// import AWS from "aws-sdk";
+import { envKey } from "src/Url";
+const AddNewCategory = () => {
+  const navigate = useNavigate();
+  //   AWS.config.update({
+  //     accessKeyId: "YOUR_ACCESS_KEY_ID",
+  //     secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
+  //     region: "YOUR_AWS_REGION",
+  //   });
 
-  const s3 = new AWS.S3();
+  //   const s3 = new AWS.S3();
 
   const [formData, setFormData] = useState({
-    item_name: "",
-    description: "",
-    price: "",
     category: "",
     imageUrl: [],
   });
@@ -91,17 +91,68 @@ const AddNewOrder = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const verifyTokenAndProceedToCheckout = async () => {
     try {
-      // Call saveProduct function with formData
-      const savedProduct = await dataService.saveProduct(formData);
-      console.log("Product saved successfully:", savedProduct);
-      // Optionally, perform any additional actions after successful product save
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Redirect to login page or display a message
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:3001/vendor/verify-token",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle unauthorized access or invalid token
+        // Redirect to login page or display a message
+        return;
+      }
+      const { vendorId } = await response.json();
+      console.log({ vendorId });
+      // console.log("here")
+      fetchData(vendorId);
+      // makePayment(userName);
     } catch (error) {
-      console.error("Failed to save product:", error);
+      console.error("Error verifying token and proceeding to checkout:", error);
+    }
+  };
+
+  const fetchData = async (vendorId) => {
+    console.log("Fetching", vendorId);
+    try {
+      const { category } = formData;
+      const response = await fetch(`${envKey.BASE_URL}/vendor/${vendorId}/categories`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ categoryName: category }),
+      });
+
+      if (response.ok) {
+        console.log("Category added successfully");
+        // Optionally, perform any additional actions after successful category addition
+      } else {
+        console.error("Failed to add category:", response.statusText);
+        // Handle error
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
       // Handle error
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    verifyTokenAndProceedToCheckout();
   };
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -139,25 +190,12 @@ const AddNewOrder = () => {
 
   return (
     <CContainer>
-      <h3>Add New Product</h3>
+      <h3>Add New Category</h3>
       <CForm onSubmit={handleSubmit}>
         <CRow>
           <CCol md="6">
-            <CFormLabel htmlFor="productName" className="mt-4">
-              Item Name
-            </CFormLabel>
-            <CFormInput
-              type="text"
-              id="itemname"
-              name="item_name"
-              value={formData.item_name}
-              onChange={handleChange}
-              required
-            />
-          </CCol>
-          <CCol md="6">
             <CFormLabel htmlFor="keyWords" className="mt-4">
-              Category Id
+              Category Name
             </CFormLabel>
             <CFormInput
               type="text"
@@ -167,35 +205,10 @@ const AddNewOrder = () => {
               onChange={handleChange}
             />
           </CCol>
-          <CCol md="12">
-            <CFormLabel htmlFor="description" className="mt-4">
-              Item Description
-            </CFormLabel>
-            <CFormTextarea
-              id="description"
-              rows={3}
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-            />
-          </CCol>
-          <CCol md="6">
-            <CFormLabel htmlFor="price" className="mt-4">
-              Price
-            </CFormLabel>
-            <CFormInput
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              required
-            />
-          </CCol>
 
           <CCol md="12">
             <CFormLabel htmlFor="imageUrl" className="mt-4">
-              Product Images
+              Category Images
             </CFormLabel>
 
             {renderImagePreviews()}
@@ -221,4 +234,4 @@ const AddNewOrder = () => {
   );
 };
 
-export default AddNewOrder;
+export default AddNewCategory;

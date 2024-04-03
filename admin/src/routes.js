@@ -12,6 +12,8 @@ const Allproducts = lazy(() => import('./views/products/Allproducts'));
 const Category = lazy(() => import('./views/products/Category'));
 const AddNewProduct = lazy(() => import('./views/products/AddNew'));
 const Inventory = lazy(() => import('./views/stocks/Inventory'));
+const AddNewCategory = lazy(() => import('./views/products/AddNewCategory'));
+// const AddNewCategory =lazy(()=> import ('./views/products/AddNewCategory'))
 
 
 const Sales = lazy(() => import('./views/Analytics/Sales'));
@@ -35,6 +37,7 @@ const routes = [
   { path: '/products', name: 'Products', element: Allproducts },
   { path: '/products/categories', name: 'Categories', element: Category },
   { path: '/products/add/new', name: 'AddNew', element: AddNewProduct },
+  { path: '/categories/add/new', name: 'AddNew', element: AddNewCategory },
   { path: '/products/details/:id', name: 'AddNew', element: ProductDetails },
   { path: '/stocks/inventory', name: 'Inventory', element: Inventory },
 
