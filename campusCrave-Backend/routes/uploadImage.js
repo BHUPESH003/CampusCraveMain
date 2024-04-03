@@ -1,6 +1,10 @@
 // import { failResponse } from "../utils/response";
-import { S3 } from "aws-sdk";
-import { failResponse, successResponse } from "../utils/response";
+// import { S3 } from "aws-sdk";
+const { S3 } = require("aws-sdk");
+// import { devLogger } from "../utils/logging/log-helper";
+// import { failResponse, successResponse } from "../utils/response";
+
+const { failResponse, successResponse } = require("../utils/response");
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
@@ -9,9 +13,9 @@ const s3 = new S3({
 });
 let validExtensions = ["jpg", "png"];
 const bucketName = "campuscrave";
-export const getUploadURL = async (event) => {
+const getUploadURL = async (event) => {
   try {
-   
+    // devLogger("getUploadUrl", event, "event");
     let documentDetails = event.body.uploadedDocuments;
     let folderName = `${event.body.folderName}`;
     let signUrlData = [];
@@ -24,6 +28,7 @@ export const getUploadURL = async (event) => {
           `${folderName}/${fileName}`,
           300
         );
+        console.log(preSignedUrl);
         signUrlData.push({
           fileName: fileName,
           uploadPath: preSignedUrl,
@@ -56,7 +61,7 @@ export const getUploadURL = async (event) => {
   }
 };
 
-export const uploadToS3 = (bucketName, key, expire) => {
+const uploadToS3 = (bucketName, key, expire) => {
   let preSignedUrl = s3.getSignedUrl("putObject", {
     Bucket: bucketName,
     Key: key,
@@ -64,3 +69,4 @@ export const uploadToS3 = (bucketName, key, expire) => {
   });
   return preSignedUrl;
 };
+module.exports = { getUploadURL, uploadToS3 };

@@ -1,33 +1,34 @@
-export const successResponse = (result) => {
-    let response = {
-      statusCode: result.statusCode,
-      message: result.message,
-      data: JSON.parse(result.data),
-    };
-    return response;
+const successResponse = (result) => {
+  let response = {
+    statusCode: result.statusCode,
+    message: result.message,
+    data: JSON.parse(result.data),
   };
-  export const badRequest = (message, data) => {
-    let response = {
-      statusCode: "[400]",
-      message,
-      data,
-    };
-    return response;
+  return response;
+};
+const badRequest = (message, data) => {
+  let response = {
+    statusCode: "[400]",
+    message,
+    data,
   };
-  export const failResponse = (result) => {
-    let response = {
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-    return response;
+  return response;
+};
+const failResponse = (result) => {
+  let response = {
+    statusCode: result.statusCode,
+    message: result.message,
+    data: result.data,
   };
-  export const internalServer = (message, data) => {
-    let response = {
-      statusCode: "[500]",
-      message,
-      data,
-    };
-    return response;
+  return response;
+};
+const internalServer = (message, data) => {
+  let response = {
+    statusCode: "[500]",
+    message,
+    data,
   };
-  
+  return response;
+};
+
+module.exports = { successResponse, failResponse, internalServer, badRequest };

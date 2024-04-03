@@ -8,6 +8,8 @@ const Stripe = require("stripe");
 const { authenticateToken } = require("./MiddleWares/authMiddleWare");
 const { verifyToken } = require("./MiddleWares/authMiddleWare");
 
+const {getUploadURL} =require('./routes/uploadImage')
+
 const app = express();
 
 app.use(cors());
@@ -106,6 +108,19 @@ app.post("/webhook", async (req, res) => {
   } catch (error) {
     console.error("Error processing webhook event:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post('/getUploadUrl', async (req, res) => {
+  try {
+    // Call the getUploadURL function passing the request object
+    const response = await getUploadURL(req);
+    // Send the response back to the client
+    res.status(200).json(response);
+  } catch (error) {
+    // If there's an error, send an error response
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
