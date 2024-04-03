@@ -197,8 +197,8 @@ vendorRouter.post("/:vendorId/item", async (req, res) => {
   const vendorId = req.params.vendorId;
 
   // Generate a random Item_ID between 1 and 100
+  console.log(req.body);
   const itemId = Math.floor(Math.random() * 100) + 1;
-
   try {
     // Check if an item with the same name already exists
     const checkQuery = `
@@ -224,11 +224,11 @@ vendorRouter.post("/:vendorId/item", async (req, res) => {
       const result = await client.query(insertQuery, [
         vendorId,
         itemId,
-        req.body.categoryId, // Assuming you have categoryId in the request body
-        req.body.itemName,
-        req.body.itemDesc,
-        req.body.itemPrice,
-        req.body.itemImage,
+        req.body.category, // Assuming you have categoryId in the request body
+        req.body.item_name,
+        req.body.description,
+        req.body.price,
+        req.body.imagePreviews,
       ]);
       res.json(result.rows);
     }
@@ -237,6 +237,34 @@ vendorRouter.post("/:vendorId/item", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+async function getVendorStats(vendorId) {
+  try {
+    const result = await client.query(
+      `SELECT
+        COUNT(DISTINCT po.id) AS total_orders,
+        SUM(io.quantity) AS total_items_sold,
+        SUM(po.price) AS total_amount
+      FROM
+        placed_order po
+      INNER JOIN
+        itemsordered io ON po.id = io.orderid
+      WHERE
+        po.vendor_id = $1`,
+      [vendorId]
+    );
+
+    const { total_orders, total_items_sold, total_amount } = result.rows[0];
+
+    return {
+      total_orders,
+      total_items_sold,
+      total_amount,
+    };
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw new Error("Error retrieving vendor stats");
+  }
+}
 
 vendorRouter.put("/item/:itemId", verifyToken, async (req, res) => {
   const itemId = req.params.itemId;
@@ -405,7 +433,8 @@ vendorRouter.put("/:vendorId/categories/:categoryId", async (req, res) => {
   try {
     const vendorId = req.params.vendorId;
     const categoryId = req.params.categoryId;
-    const query = "UPDATE VendorCategories SET id = $1 WHERE vendor_id = $2 AND id = $3";
+    const query =
+      "UPDATE VendorCategories SET id = $1 WHERE vendor_id = $2 AND id = $3";
     await client.query(query, [req.body.newCategoryId, vendorId, categoryId]);
     res.sendStatus(200); // OK
   } catch (error) {
@@ -419,7 +448,8 @@ vendorRouter.delete("/:vendorId/categories/:categoryId", async (req, res) => {
   try {
     const vendorId = req.params.vendorId;
     const categoryId = req.params.categoryId;
-    const query = "DELETE FROM VendorCategories WHERE vendor_id = $1 AND id = $2";
+    const query =
+      "DELETE FROM VendorCategories WHERE vendor_id = $1 AND id = $2";
     await client.query(query, [vendorId, categoryId]);
     res.sendStatus(204); // No Content
   } catch (error) {
@@ -437,15 +467,18 @@ vendorRouter.post("/:vendorId/categories", async (req, res) => {
     const { rows } = await client.query(checkQuery, [categoryName]);
     if (rows.length === 0) {
       // Category does not exist, insert new category
-      const insertQuery = "INSERT INTO category (category_name) VALUES ($1) RETURNING id";
+      const insertQuery =
+        "INSERT INTO category (category_name) VALUES ($1) RETURNING id";
       const insertedCategory = await client.query(insertQuery, [categoryName]);
       const categoryId = insertedCategory.rows[0].id;
-      const vendorCategoryQuery = "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
+      const vendorCategoryQuery =
+        "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
       await client.query(vendorCategoryQuery, [vendorId, categoryId]);
     } else {
       // Category exists, associate with the vendor
       const categoryId = rows[0].id;
-      const vendorCategoryQuery = "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
+      const vendorCategoryQuery =
+        "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
       await client.query(vendorCategoryQuery, [vendorId, categoryId]);
     }
     res.sendStatus(201); // Created
@@ -455,4 +488,16 @@ vendorRouter.post("/:vendorId/categories", async (req, res) => {
   }
 });
 
-module.exports = vendorRouter;
+vendorRouter.get('/stats/:vendorId', async (req, res) => {
+  const { vendorId } = req.params;
+
+  try {
+    const stats = await getVendorStats(vendorId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting vendor stats:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+module.exports = { vendorRouter, getVendorStats };

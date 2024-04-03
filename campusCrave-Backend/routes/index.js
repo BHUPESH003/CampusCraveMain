@@ -1,6 +1,6 @@
 const express=require('express')
 const userRouter = require('./user')
-const vendorRouter=require('./vendor')
+const {vendorRouter}=require('./vendor')
 const categoriesRouter = require('./categories');
 const {orders} = require('./Orders');
 

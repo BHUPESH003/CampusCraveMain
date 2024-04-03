@@ -108,25 +108,93 @@ orders.get("/vendorOrders/:vendorId", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+// orders.post("/:orderId/review", authenticateToken, async (req, res) => {
+//   const orderId = req.params.orderId;
+
+//   const { ratings, comment } = req.body; // ratings should be an array containing item ratings [{ itemId: 1, rating: 4, comment: "Comment for item 1" }, { itemId: 2, rating: 3, comment: "Comment for item 2" }, ...]
+
+//   try {
+//     await client.query("BEGIN");
+
+//     // Get vendor ID and user ID from the placed_order table
+//     const orderDetailsQuery = `
+//         SELECT vendor_id, user_id FROM placed_order WHERE ID = $1;
+//       `;
+//     const orderDetailsResult = await client.query(orderDetailsQuery, [orderId]);
+//     const { vendor_id: vendorId, user_id: userId } = orderDetailsResult.rows[0];
+
+//     // Calculate average rating
+//     const averageRating = calculateAverageRating(ratings); // You need to implement this function
+
+//     // Insert review into the vendor_ratings table with the average rating
+//     const reviewQuery = `
+//         INSERT INTO vendor_ratings (order_id, vendor_id, overall_rating, comment)
+//         VALUES ($1, $2, $3, $4)
+//         RETURNING *;
+//       `;
+//     const reviewResult = await client.query(reviewQuery, [
+//       orderId,
+//       vendorId,
+//       averageRating,
+//       comment,
+//     ]);
+
+//     // Get items ordered from the placed_order table
+//     const orderItemsQuery = `
+//         SELECT items_ordered
+//         FROM placed_order
+//         WHERE ID = $1;
+//       `;
+//     const orderItemsResult = await client.query(orderItemsQuery, [orderId]);
+//     const items = orderItemsResult.rows[0].items_ordered;
+
+//     // Insert item ratings into the item_ratings table
+//     for (const itemRating of ratings) {
+//       const itemId = itemRating.itemId;
+//       const { rating, comment } = itemRating;
+
+//       // Check if the item ID exists in the order's items
+//       const itemExists = items.find((item) => item.itemId === itemId);
+//       if (!itemExists) {
+//         await client.query("ROLLBACK");
+//         return res.status(400).json({
+//           error: `Item with ID ${itemId} does not exist in the order`,
+//         });
+//       }
+
+//       const itemRatingQuery = `
+//           INSERT INTO item_ratings (placed_order_id, item_id, item_rating, comment)
+//           VALUES ($1, $2, $3, $4);
+//         `;
+//       await client.query(itemRatingQuery, [orderId, itemId, rating, comment]);
+//     }
+
+//     await client.query("COMMIT");
+
+//     res.status(201).json(reviewResult.rows[0]); // Respond with the newly created review
+//   } catch (error) {
+//     console.error("Error posting review:", error);
+//     await client.query("ROLLBACK");
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
 orders.post("/:orderId/review", authenticateToken, async (req, res) => {
   const orderId = req.params.orderId;
 
-  const { ratings, comment } = req.body; // ratings should be an array containing item ratings [{ itemId: 1, rating: 4, comment: "Comment for item 1" }, { itemId: 2, rating: 3, comment: "Comment for item 2" }, ...]
+  const { rating, comment } = req.body; // rating should be a single value representing the overall order rating
 
   try {
     await client.query("BEGIN");
 
     // Get vendor ID and user ID from the placed_order table
     const orderDetailsQuery = `
-        SELECT vendor_id, user_id FROM placed_order WHERE ID = $1;
+        SELECT vendor_id, userName FROM placed_order WHERE id = $1;
       `;
     const orderDetailsResult = await client.query(orderDetailsQuery, [orderId]);
-    const { vendor_id: vendorId, user_id: userId } = orderDetailsResult.rows[0];
+    const { vendor_id: vendorId, userName: userId } = orderDetailsResult.rows[0];
 
-    // Calculate average rating
-    const averageRating = calculateAverageRating(ratings); // You need to implement this function
-
-    // Insert review into the vendor_ratings table with the average rating
+    // Insert review into the vendor_ratings table
     const reviewQuery = `
         INSERT INTO vendor_ratings (order_id, vendor_id, overall_rating, comment)
         VALUES ($1, $2, $3, $4)
@@ -135,39 +203,9 @@ orders.post("/:orderId/review", authenticateToken, async (req, res) => {
     const reviewResult = await client.query(reviewQuery, [
       orderId,
       vendorId,
-      averageRating,
+      rating,
       comment,
     ]);
-
-    // Get items ordered from the placed_order table
-    const orderItemsQuery = `
-        SELECT items_ordered
-        FROM placed_order
-        WHERE ID = $1;
-      `;
-    const orderItemsResult = await client.query(orderItemsQuery, [orderId]);
-    const items = orderItemsResult.rows[0].items_ordered;
-
-    // Insert item ratings into the item_ratings table
-    for (const itemRating of ratings) {
-      const itemId = itemRating.itemId;
-      const { rating, comment } = itemRating;
-
-      // Check if the item ID exists in the order's items
-      const itemExists = items.find((item) => item.itemId === itemId);
-      if (!itemExists) {
-        await client.query("ROLLBACK");
-        return res.status(400).json({
-          error: `Item with ID ${itemId} does not exist in the order`,
-        });
-      }
-
-      const itemRatingQuery = `
-          INSERT INTO item_ratings (placed_order_id, item_id, item_rating, comment)
-          VALUES ($1, $2, $3, $4);
-        `;
-      await client.query(itemRatingQuery, [orderId, itemId, rating, comment]);
-    }
 
     await client.query("COMMIT");
 

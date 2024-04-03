@@ -8,7 +8,8 @@ const Stripe = require("stripe");
 const { authenticateToken } = require("./MiddleWares/authMiddleWare");
 const { verifyToken } = require("./MiddleWares/authMiddleWare");
 
-const {getUploadURL} =require('./routes/uploadImage')
+const {getUploadURL} =require('./routes/uploadImage');
+const { getVendorStats } = require("./routes/vendor");
 
 const app = express();
 
@@ -110,7 +111,17 @@ app.post("/webhook", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+app.get('vendor/stats/:vendorId', async (req, res) => {
+  const { vendorId } = req.params;
 
+  try {
+    const stats = await getVendorStats(vendorId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting vendor stats:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 app.post('/getUploadUrl', async (req, res) => {
   try {
     // Call the getUploadURL function passing the request object

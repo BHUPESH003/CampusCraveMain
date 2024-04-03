@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CButton,
   CCol,
@@ -8,18 +8,23 @@ import {
   CFormLabel,
   CRow,
   CFormTextarea,
-  CFormCheck,
 } from "@coreui/react";
-import { dataService } from "../../services/apiServices/dataService";
-import AWS from "aws-sdk";
-const AddNewOrder = () => {
-  AWS.config.update({
-    accessKeyId: "YOUR_ACCESS_KEY_ID",
-    secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
-    region: "YOUR_AWS_REGION",
-  });
+// import { dataService } from "../../services/apiServices/dataService";
+// import AWS from "aws-sdk";
+import { envKey } from "src/Url";
+import { useNavigate } from "react-router-dom";
 
-  const s3 = new AWS.S3();
+const AddNewOrder = () => {
+  const navigate = useNavigate();
+  // const [vendorId, setVendorId] = useState();
+  const [categories, setCategories] = useState();
+  // AWS.config.update({
+  //   accessKeyId: "YOUR_ACCESS_KEY_ID",
+  //   secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
+  //   region: "YOUR_AWS_REGION",
+  // });
+
+  // const s3 = new AWS.S3();
 
   const [formData, setFormData] = useState({
     item_name: "",
@@ -91,18 +96,148 @@ const AddNewOrder = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const verifyTokenAndProceedToCheckout = async () => {
     try {
-      // Call saveProduct function with formData
-      const savedProduct = await dataService.saveProduct(formData);
-      console.log("Product saved successfully:", savedProduct);
-      // Optionally, perform any additional actions after successful product save
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Redirect to login page or display a message
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:3001/vendor/verify-token",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle unauthorized access or invalid token
+        // Redirect to login page or display a message
+        return;
+      }
+      const { vendorId } = await response.json();
+      // setVendorId(vendorId);
+      console.log({ vendorId });
+      // console.log("here")
+      fetchData(vendorId);
+      // makePayment(userName);
     } catch (error) {
-      console.error("Failed to save product:", error);
+      console.error("Error verifying token and proceeding to checkout:", error);
+    }
+  };
+
+
+  const fetchData = async (vendorId) => {
+    console.log("Fetching", vendorId);
+    try {
+      // const { product } = formData;
+      // console.log(formData)
+      const response = await fetch(
+        `${envKey.BASE_URL}/vendor/${vendorId}/item`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify( formData ),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Product added successfully");
+        // Optionally, perform any additional actions after successful category addition
+      } else {
+        console.error("Failed to add product:", response.statusText);
+        // Handle error
+      }
+    } catch (error) {
+      console.error("Error adding product:", error);
       // Handle error
     }
   };
+  const verifyTokenAndFetchCategory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // Redirect to login page or display a message
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:3001/vendor/verify-token",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle unauthorized access or invalid token
+        // Redirect to login page or display a message
+        return;
+      }
+      const { vendorId } = await response.json();
+      console.log({ vendorId });
+      // console.log("here")
+      fetchCategoryData(vendorId);
+      // makePayment(userName);
+    } catch (error) {
+      console.error("Error verifying token and proceeding to checkout:", error);
+    }
+  };
+  const fetchCategoryData = async (vendorId) => {
+    console.log("Fetching", vendorId);
+    try {
+      // Fetch orders for a specific vendor (replace 'vendorId' with the actual vendor ID)
+      // const vendorId = 6; // Replace 'vendorId' with the actual vendor ID
+
+      const response = await fetch(
+        `${envKey.BASE_URL}/vendor/${vendorId}/categories`
+      );
+      const data = await response.json();
+
+      setCategories(data); // Update state with fetched orders data
+      console.log(data); // Log the fetched orders data
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Assuming you want to fetch orders when the component mounts
+    verifyTokenAndFetchCategory();
+
+    // Call the fetchData function
+  },);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    verifyTokenAndProceedToCheckout();
+  };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   // try {
+  //   //   // Call saveProduct function with formData
+  //   //   const savedProduct = await dataService.saveProduct(formData);
+  //   //   console.log("Product saved successfully:", savedProduct);
+  //   //   // Optionally, perform any additional actions after successful product save
+  //   // } catch (error) {
+  //   //   console.error("Failed to save product:", error);
+  //   //   // Handle error
+  //   // }
+
+  //   try{
+
+  //   }
+  // };
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   try {
@@ -140,6 +275,16 @@ const AddNewOrder = () => {
   return (
     <CContainer>
       <h3>Add New Product</h3>
+      <div className="row">
+        {categories.map((category) => (
+          <>
+          <div className="col-3" key={category.id}>
+            <span>Category ID:   {category.id}</span><br/>
+            <span>Category Name:  {category.category_name}</span>
+          </div>
+          </>
+        ))}
+      </div>
       <CForm onSubmit={handleSubmit}>
         <CRow>
           <CCol md="6">
@@ -152,6 +297,7 @@ const AddNewOrder = () => {
               name="item_name"
               value={formData.item_name}
               onChange={handleChange}
+              placeholder="Product Name"
               required
             />
           </CCol>
@@ -160,9 +306,10 @@ const AddNewOrder = () => {
               Category Id
             </CFormLabel>
             <CFormInput
-              type="text"
+              type="number"
               id="category"
               name="category"
+              placeholder="Enter Category Id by selecting it from the above list"
               value={formData.category}
               onChange={handleChange}
             />
@@ -175,6 +322,7 @@ const AddNewOrder = () => {
               id="description"
               rows={3}
               name="description"
+              placeholder="Product Description"
               value={formData.description}
               onChange={handleChange}
             />
@@ -187,6 +335,7 @@ const AddNewOrder = () => {
               type="number"
               id="price"
               name="price"
+              placeholder="Price"
               value={formData.price}
               onChange={handleChange}
               required

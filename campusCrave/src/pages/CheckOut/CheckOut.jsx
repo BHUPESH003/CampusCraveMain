@@ -42,7 +42,12 @@ export default function CheckOut() {
 
   //   return foodReadyTime.toISOString();
   // };
+ 
   const calculateFoodReadyTime = (cartItems) => {
+    if (cartItems.length === 0) {
+      // If cart is empty, return null or any default value
+      return null;
+    }
     // Calculate average time from cartItems
     const avgTimeInMinutes = cartItems[0].product.avg_time;
 
@@ -61,7 +66,7 @@ export default function CheckOut() {
       foodReadyTime: calculateFoodReadyTime(cartItems), // Food ready time based on vendor avg time
       price: calculateSubtotal(),
       comment: "Special request by bhupesh",
-      vendorId: cartItems[0].product.vendor_id,
+      vendorId: cartItems.length > 0 ? cartItems[0].product.vendor_id : null, // Check if cartItems is not empty before accessing vendor_id
       createdAt: new Date().toISOString(),
       paymentId: 2,
       paymentStatus: "Received",
@@ -69,6 +74,7 @@ export default function CheckOut() {
       itemsOrdered: transformCartItems(cartItems),
     },
   };
+
 
   // const makePayment = async () => {
   //   const tokenResponse = await fetch("http://localhost:3000/verify-token", {

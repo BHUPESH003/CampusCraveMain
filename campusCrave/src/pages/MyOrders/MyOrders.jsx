@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import image from '../../assets/food_1.png'
-import { Link } from 'react-router-dom'
-import { Model } from 'mongoose'
+// import { Link } from 'react-router-dom'
+// import { Model } from 'mongoose'
 export default function MyOrders(props) {
   const [showModal, setShowModal] = useState(false);
 
