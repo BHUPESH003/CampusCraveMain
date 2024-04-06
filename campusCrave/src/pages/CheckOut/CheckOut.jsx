@@ -44,6 +44,7 @@ export default function CheckOut() {
   // };
  
   const calculateFoodReadyTime = (cartItems) => {
+    
     if (cartItems.length === 0) {
       // If cart is empty, return null or any default value
       return null;
@@ -58,8 +59,9 @@ export default function CheckOut() {
     ); // Convert minutes to milliseconds
 
     // Return a valid date string
-    return foodReadyTime.toISOString();
+    return foodReadyTime;
   };
+  console.log(cartItems)
   const transformedData = {
     products: {
       orderTime: new Date().toISOString(), // Current time

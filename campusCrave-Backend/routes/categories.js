@@ -60,7 +60,7 @@ categoriesRouter.get("/:categoryId/menuItems", async (req, res) => {
 
   try {
     const result = await client.query(
-      `SELECT menu_items.*, vendors.vendor_name, vendor_ratings.Overall_Rating as vendor_rating, item_ratings.Item_Rating as item_rating
+      `SELECT menu_items.*, vendors.vendor_name,vendors.avg_time as avg_time, vendor_ratings.Overall_Rating as vendor_rating, item_ratings.Item_Rating as item_rating
       FROM menu_items 
       INNER JOIN vendors ON menu_items.vendor_id = vendors.vendor_id
       LEFT JOIN vendor_ratings ON vendors.vendor_id = vendor_ratings.vendor_id

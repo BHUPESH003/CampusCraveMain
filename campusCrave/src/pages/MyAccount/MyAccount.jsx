@@ -65,7 +65,7 @@ export default function MyAccount() {
           // Redirect to login page or display a message
           return;
         }
-        const { userName ,  email , phone_no  } = await response.json();
+        const { userName ,  email   } = await response.json();
         setUsername(userName);
         setEmail(email);
        

@@ -8,7 +8,10 @@ import { CBadge, CButton } from "@coreui/react";
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  
   const bagCount = useAtomValue(cartItemQuantityAtom);
+
+  
  
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -31,7 +34,7 @@ function Header() {
         </Link>
         <div
           className="d-flex justify-content-between"
-          style={{ width: "53vw" }}
+          style={{ width: "33vw" }}
         >
           <Link to="/search" className="text-body mt-1">
             {" "}
