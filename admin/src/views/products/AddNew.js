@@ -32,7 +32,9 @@ const AddNewOrder = () => {
     price: "",
     category: "",
     imageUrl: [],
+    imagePreviews: [],
   });
+  const Foldername = "Products";
 
   const handleChange = (e, index) => {
     const { name, value, files } = e.target;
@@ -84,6 +86,11 @@ const AddNewOrder = () => {
     const files = e.target.files;
     const imagesArray = Array.from(files);
 
+    setFormData((prevData) => ({
+      ...prevData,
+      imageUrl: [...prevData.imageUrl, ...imagesArray], // Append new images to existing imageUrl array
+    }));
+
     // Read each image file and create a preview URL
     const newImagePreviews = imagesArray.map((image) =>
       URL.createObjectURL(image)
@@ -94,43 +101,50 @@ const AddNewOrder = () => {
       ...prevData,
       imagePreviews: [...(prevData.imagePreviews || []), ...newImagePreviews],
     }));
+    e.target.value = null;
   };
 
-  const verifyTokenAndProceedToCheckout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        // Redirect to login page or display a message
-        navigate("/login");
-        return;
-      }
+  // const verifyTokenAndProceedToCheckout = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) {
+  //       // Redirect to login page or display a message
+  //       navigate("/login");
+  //       return;
+  //     }
 
-      const response = await fetch(
-        "http://localhost:3001/vendor/verify-token",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  //     const response = await fetch(
+  //       "http://localhost:3001/vendor/verify-token",
+  //       {
+  //         method: "GET",
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      if (!response.ok) {
-        // Handle unauthorized access or invalid token
-        // Redirect to login page or display a message
-        return;
-      }
-      const { vendorId } = await response.json();
-      // setVendorId(vendorId);
-      console.log({ vendorId });
-      // console.log("here")
-      fetchData(vendorId);
-      // makePayment(userName);
-    } catch (error) {
-      console.error("Error verifying token and proceeding to checkout:", error);
-    }
-  };
-
+  //     if (!response.ok) {
+  //       // Handle unauthorized access or invalid token
+  //       // Redirect to login page or display a message
+  //       return;
+  //     }
+  //     const { vendorId } = await response.json();
+  //     // setVendorId(vendorId);
+  //     console.log({ vendorId });
+  //     // console.log("here")
+  //     const uploadSuccessful = await uploadImages();
+  //     console.log({ uploadSuccessful });
+  //     if (uploadSuccessful) {
+  //       fetchData(vendorId);
+      
+  //     } else {
+  //       // Handle upload failure
+  //       console.error("Failed to")
+  //     }
+  //   } catch (error) {
+  //     console.error("Error verifying token and proceeding to checkout:", error);
+  //   }
+  // };
 
   const fetchData = async (vendorId) => {
     console.log("Fetching", vendorId);
@@ -144,7 +158,7 @@ const AddNewOrder = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify( formData ),
+          body: JSON.stringify(formData),
         }
       );
 
@@ -160,6 +174,106 @@ const AddNewOrder = () => {
       // Handle error
     }
   };
+  const uploadImages = async () => {
+    try {
+        const folderName = Foldername; // Get folderName from formData
+        // Extract only the image file names from formData
+        const requestData = {
+            uploadedDocuments: formData.imageUrl.map((image) => ({
+                fileName: image.name,
+            })),
+            folderName: folderName,
+        };
+
+        // Send request to get pre-signed URLs from the backend
+        const uploadUrlResponse = await fetch(
+            `${envKey.BASE_URL}/vendor/getUploadUrl`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData),
+            }
+        );
+
+        if (!uploadUrlResponse.ok) {
+            console.error(
+                "Failed to get upload URL:",
+                uploadUrlResponse.statusText
+            );
+            return false;
+        }
+
+        const uploadUrlData = await uploadUrlResponse.json();
+        const preSignedUrls = uploadUrlData.data; // Array of pre-signed URLs
+
+        // Construct the image paths in the format 'folderName/fileName'
+        const imagePaths = preSignedUrls.map((document, index) => ({
+            fileName: formData.imageUrl[index].name,
+            uploadPath: `${folderName}/${document.fileName}`,
+        }));
+
+        // Upload files to S3 using pre-signed URLs
+        const uploadPromises = preSignedUrls.map(async (document, index) => {
+            const file = formData.imageUrl[index];
+            const response = await fetch(document.uploadPath, {
+                method: "PUT",
+                body: file,
+
+                headers: {
+                    "Content-Type": file.type,
+                },
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to upload ${file.name}:`, response.statusText);
+                return null;
+            }
+
+            return imagePaths[index].uploadPath; // Return the image path in 'folderName/fileName' format
+        });
+
+        const uploadedPaths = await Promise.all(uploadPromises);
+
+        // Construct data to update the form with processed data
+        const updatedFormData = {
+            ...formData,
+            imageUrl: imagePaths.map((imagePath) => imagePath.uploadPath),
+        };
+
+        // Update the form state with the processed data
+        setFormData(updatedFormData);
+
+        console.log("Images uploaded successfully");
+
+        // Call fetchData here
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+            "http://localhost:3001/vendor/verify-token",
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (!response.ok) {
+            // Handle unauthorized access or invalid token
+            // Redirect to login page or display a message
+            return false;
+        }
+        const { vendorId } = await response.json();
+        fetchData(vendorId);
+        
+        return true; // Return true indicating successful upload
+    } catch (error) {
+        console.error("Error handling submit:", error);
+        return false; // Return false indicating upload failure
+    }
+};
+
   const verifyTokenAndFetchCategory = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -216,74 +330,29 @@ const AddNewOrder = () => {
     verifyTokenAndFetchCategory();
 
     // Call the fetchData function
-  },[]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    verifyTokenAndProceedToCheckout();
+    uploadImages();
   };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   // try {
-  //   //   // Call saveProduct function with formData
-  //   //   const savedProduct = await dataService.saveProduct(formData);
-  //   //   console.log("Product saved successfully:", savedProduct);
-  //   //   // Optionally, perform any additional actions after successful product save
-  //   // } catch (error) {
-  //   //   console.error("Failed to save product:", error);
-  //   //   // Handle error
-  //   // }
 
-  //   try{
-
-  //   }
-  // };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     // Upload images to AWS S3
-  //     const uploadedImageUrls = await Promise.all(
-  //       formData.imageUrl.map(async (imageFile) => {
-  //         const params = {
-  //           Bucket: 'YOUR_BUCKET_NAME',
-  //           Key: `images/${imageFile.name}`,
-  //           Body: imageFile,
-  //           ACL: 'public-read',
-  //         };
-
-  //         const uploadResult = await s3.upload(params).promise();
-  //         return uploadResult.Location;
-  //       })
-  //     );
-
-  //     // Update form data with AWS image URLs
-  //     const updatedFormData = {
-  //       ...formData,
-  //       imageUrl: uploadedImageUrls,
-  //     };
-
-  //     // Call saveProduct function with updated form data
-  //     const savedProduct = await dataService.saveProduct(updatedFormData);
-  //     console.log("Product saved successfully:", savedProduct);
-  //     // Optionally, perform any additional actions after successful product save
-  //   } catch (error) {
-  //     console.error("Failed to save product:", error);
-  //     // Handle error
-  //   }
-  // };
+  console.log(formData);
 
   return (
     <CContainer>
       <h3>Add New Product</h3>
       <div className="row">
-        {categories.map((category) => (
-          <>
-          <div className="col-3" key={category.id}>
-            <span>Category ID:   {category.id}</span><br/>
-            <span>Category Name:  {category.category_name}</span>
-          </div>
-          </>
-        ))}
+        {categories &&
+          categories.map((category) => (
+            <>
+              <div className="col-3" key={category.id}>
+                <span>Category ID: {category.id}</span>
+                <br />
+                <span>Category Name: {category.category_name}</span>
+              </div>
+            </>
+          ))}
       </div>
       <CForm onSubmit={handleSubmit}>
         <CRow>
@@ -353,7 +422,6 @@ const AddNewOrder = () => {
               id="imageUrl"
               multiple
               name="imageUrl"
-              value={formData.imageUrl}
               onChange={handleImageChange}
               accept="image/*"
             />

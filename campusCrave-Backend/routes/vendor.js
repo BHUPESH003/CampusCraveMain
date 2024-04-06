@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const { z } = require("zod");
 const client = require("../config/index");
 const { v4: uuidv4 } = require("uuid");
+const {getUploadURL} =require('./uploadImage');
+
 const { verifyToken } = require("../MiddleWares/authMiddleWare");
 
 // const vendorSchema = z.object({
@@ -228,7 +230,7 @@ vendorRouter.post("/:vendorId/item", async (req, res) => {
         req.body.item_name,
         req.body.description,
         req.body.price,
-        req.body.imagePreviews,
+        req.body.imageUrl,
       ]);
       res.json(result.rows);
     }
@@ -288,6 +290,19 @@ vendorRouter.put("/item/:itemId", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("Error executing query", err);
     res.status(500).send("Internal Server Error");
+  }
+});
+vendorRouter.post("/getUploadUrl", async (req, res) => {
+  try {
+    console.log("here");
+    // Call the getUploadURL function passing the request object
+    const response = await getUploadURL(req);
+    // Send the response back to the client
+    res.status(200).json(response);
+  } catch (error) {
+    // If there's an error, send an error response
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 vendorRouter.delete("/item/:itemId", verifyToken, async (req, res) => {
@@ -488,15 +503,15 @@ vendorRouter.post("/:vendorId/categories", async (req, res) => {
   }
 });
 
-vendorRouter.get('/stats/:vendorId', async (req, res) => {
+vendorRouter.get("/stats/:vendorId", async (req, res) => {
   const { vendorId } = req.params;
 
   try {
     const stats = await getVendorStats(vendorId);
     res.json(stats);
   } catch (error) {
-    console.error('Error getting vendor stats:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting vendor stats:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
