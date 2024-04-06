@@ -216,7 +216,7 @@ const AddNewOrder = () => {
     verifyTokenAndFetchCategory();
 
     // Call the fetchData function
-  },);
+  },[]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
