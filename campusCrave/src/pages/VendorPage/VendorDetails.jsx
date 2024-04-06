@@ -8,6 +8,7 @@ import { handleCartService } from "../services/internalServices/handlecart";
 import { useAtom } from "jotai";
 import { cartAtomNew } from "../../store";
 import CartToast from "../../Components/CartToast/CartToast";
+import { s3 } from "../../../env";
 
 const VendorDetails = (props) => {
   const [cartItems, setCartItems] = useAtom(cartAtomNew);
@@ -18,13 +19,13 @@ const VendorDetails = (props) => {
   // //   setCartItems([...cc]);
   // // };
   const handleAddToCart = (data) => {
-    
+
     const currentCartItem = cartItems.find((x) => x.productId === data.item_id);
     // Check if cart contains items and if they belong to a different vendor
     const hasDifferentVendor = cartItems.some(
       (item) => item.product.vendor_id !== data.vendor_id
     );
-      
+
     if (hasDifferentVendor) {
       const confirmEmpty = window.confirm(
         "Adding items from a different vendor will empty your cart. Do you want to continue?"
@@ -62,17 +63,32 @@ const VendorDetails = (props) => {
           totalAmount: data.price,
         },
       ]);
-      setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-      }, 2000);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 2000);
   };
+  function extractPath(jsonString) {
+    try {
+      const extractedValue = JSON.parse(jsonString);
+      const path = Object.keys(extractedValue)[0];
+      return path;
+    } catch (error) {
+      // console.error("Error parsing JSON:", error);
+      return null;
+    }
+  }
+  // console.log(props.image_url)
+  
+  const slicedString=props.image_url.slice(2,props.image_url.length-2);
+  // const slicedStringAgain=slicedString.slice(slicedString.length-2,slicedString.length)
+  console.log(slicedString)
   return (
     <div class="row border-bottom border-2 my-2">
       <CartToast
         show={showToast}
         onClose={() => setShowToast(false)}
-        itemName={props.item_name} 
+        itemName={props.item_name}
       />
       <div className="col-9 align-self-center">
         <div>
@@ -93,18 +109,19 @@ const VendorDetails = (props) => {
             >
               <span style={{ fontSize: "1.2rem" }}>ADD +</span>
             </Button>
-            
-            
+
+
           </span>
         </div>
-        
-        
+
+
         <div className="body-font">{props.item_description}</div>
       </div>
       <div className="col-3 d-flex align-items-center justify-content-center  position-relative">
         <img
-          src={image}
-          // src={props.image_url}
+          // src={image}
+          src={s3.baseUrl + slicedString
+          }
 
           alt={props.item_name}
           style={{ width: "55%", height: "65%" }}
