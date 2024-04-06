@@ -8,7 +8,6 @@ const Stripe = require("stripe");
 const { authenticateToken } = require("./MiddleWares/authMiddleWare");
 const { verifyToken } = require("./MiddleWares/authMiddleWare");
 
-const {getUploadURL} =require('./routes/uploadImage');
 const { getVendorStats } = require("./routes/vendor");
 
 const app = express();
