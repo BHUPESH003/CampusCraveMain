@@ -136,7 +136,7 @@ const AddNewOrder = () => {
   //     console.log({ uploadSuccessful });
   //     if (uploadSuccessful) {
   //       fetchData(vendorId);
-      
+
   //     } else {
   //       // Handle upload failure
   //       console.error("Failed to")
@@ -146,133 +146,159 @@ const AddNewOrder = () => {
   //   }
   // };
 
-  const fetchData = async (vendorId) => {
-    console.log("Fetching", vendorId);
+  // const fetchData = async (vendorId) => {
+  //   console.log("Fetching", vendorId);
+
+  //   try {
+  //     // const { product } = formData;
+  //     // console.log(formData)
+  //     const response = await fetch(
+  //       `${envKey.BASE_URL}/vendor/${vendorId}/item`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(formData),
+  //       }
+  //     );
+
+  //     if (response.ok) {
+  //       console.log("Product added successfully");
+  //       // Optionally, perform any additional actions after successful category addition
+  //     } else {
+  //       console.error("Failed to add product:", response.statusText);
+  //       // Handle error
+  //     }
+  //   } catch (error) {
+  //     console.error("Error adding product:", error);
+  //     // Handle error
+  //   }
+  // };
+  const uploadImages = async () => {
     try {
-      // const { product } = formData;
-      // console.log(formData)
-      const response = await fetch(
-        `${envKey.BASE_URL}/vendor/${vendorId}/item`,
+      const folderName = Foldername; // Get folderName from formData
+      // Extract only the image file names from formData
+      const requestData = {
+        uploadedDocuments: formData.imageUrl.map((image) => ({
+          fileName: image.name,
+        })),
+        folderName: folderName,
+      };
+
+      // Send request to get pre-signed URLs from the backend
+      const uploadUrlResponse = await fetch(
+        `${envKey.BASE_URL}/vendor/getUploadUrl`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(requestData),
         }
       );
 
-      if (response.ok) {
-        console.log("Product added successfully");
-        // Optionally, perform any additional actions after successful category addition
-      } else {
-        console.error("Failed to add product:", response.statusText);
-        // Handle error
-      }
-    } catch (error) {
-      console.error("Error adding product:", error);
-      // Handle error
-    }
-  };
-  const uploadImages = async () => {
-    try {
-        const folderName = Foldername; // Get folderName from formData
-        // Extract only the image file names from formData
-        const requestData = {
-            uploadedDocuments: formData.imageUrl.map((image) => ({
-                fileName: image.name,
-            })),
-            folderName: folderName,
-        };
-
-        // Send request to get pre-signed URLs from the backend
-        const uploadUrlResponse = await fetch(
-            `${envKey.BASE_URL}/vendor/getUploadUrl`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestData),
-            }
+      if (!uploadUrlResponse.ok) {
+        console.error(
+          "Failed to get upload URL:",
+          uploadUrlResponse.statusText
         );
+        return false;
+      }
 
-        if (!uploadUrlResponse.ok) {
-            console.error(
-                "Failed to get upload URL:",
-                uploadUrlResponse.statusText
-            );
-            return false;
-        }
+      const uploadUrlData = await uploadUrlResponse.json();
+      const preSignedUrls = uploadUrlData.data; // Array of pre-signed URLs
 
-        const uploadUrlData = await uploadUrlResponse.json();
-        const preSignedUrls = uploadUrlData.data; // Array of pre-signed URLs
+      // Construct the image paths in the format 'folderName/fileName'
+      const imagePaths = preSignedUrls.map((document, index) => ({
+        fileName: formData.imageUrl[index].name,
+        uploadPath: `${folderName}/${document.fileName}`,
+      }));
 
-        // Construct the image paths in the format 'folderName/fileName'
-        const imagePaths = preSignedUrls.map((document, index) => ({
-            fileName: formData.imageUrl[index].name,
-            uploadPath: `${folderName}/${document.fileName}`,
-        }));
+      // Upload files to S3 using pre-signed URLs
+      const uploadPromises = preSignedUrls.map(async (document, index) => {
+        const file = formData.imageUrl[index];
+        const response = await fetch(document.uploadPath, {
+          method: "PUT",
+          body: file,
 
-        // Upload files to S3 using pre-signed URLs
-        const uploadPromises = preSignedUrls.map(async (document, index) => {
-            const file = formData.imageUrl[index];
-            const response = await fetch(document.uploadPath, {
-                method: "PUT",
-                body: file,
-
-                headers: {
-                    "Content-Type": file.type,
-                },
-            });
-
-            if (!response.ok) {
-                console.error(`Failed to upload ${file.name}:`, response.statusText);
-                return null;
-            }
-
-            return imagePaths[index].uploadPath; // Return the image path in 'folderName/fileName' format
+          headers: {
+            "Content-Type": file.type,
+          },
         });
 
-        const uploadedPaths = await Promise.all(uploadPromises);
+        if (!response.ok) {
+          console.error(`Failed to upload ${file.name}:`, response.statusText);
+          return null;
+        }
 
-        // Construct data to update the form with processed data
-        const updatedFormData = {
-            ...formData,
-            imageUrl: imagePaths.map((imagePath) => imagePath.uploadPath),
-        };
+        return imagePaths[index].uploadPath; // Return the image path in 'folderName/fileName' format
+      });
 
-        // Update the form state with the processed data
-        setFormData(updatedFormData);
+      const uploadedPaths = await Promise.all(uploadPromises);
 
-        console.log("Images uploaded successfully");
+      // Construct data to update the form with processed data
+      const updatedFormData = {
+        ...formData,
+        imageUrl: imagePaths.map((imagePath) => imagePath.uploadPath),
+      };
 
-        // Call fetchData here
-        const token = localStorage.getItem("token");
+      // Update the form state with the processed data
+      setFormData(updatedFormData);
+
+      console.log("Images uploaded successfully");
+
+      // Call fetchData here
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:3001/vendor/verify-token",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle unauthorized access or invalid token
+        // Redirect to login page or display a message
+        return false;
+      }
+      const { vendorId } = await response.json();
+      console.log("Fetching", vendorId);
+
+      try {
+        // const { product } = formData;
+        // console.log(formData)
         const response = await fetch(
-            "http://localhost:3001/vendor/verify-token",
-            {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
+          `${envKey.BASE_URL}/vendor/${vendorId}/item`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedFormData),
+          }
         );
 
-        if (!response.ok) {
-            // Handle unauthorized access or invalid token
-            // Redirect to login page or display a message
-            return false;
+        if (response.ok) {
+          console.log("Product added successfully");
+          // Optionally, perform any additional actions after successful category addition
+        } else {
+          console.error("Failed to add product:", response.statusText);
+          // Handle error
         }
-        const { vendorId } = await response.json();
-        fetchData(vendorId);
-        
-        return true; // Return true indicating successful upload
+      } catch (error) {
+        console.error("Error adding product:", error);
+        // Handle error
+      }
+      return true; // Return true indicating successful upload
     } catch (error) {
-        console.error("Error handling submit:", error);
-        return false; // Return false indicating upload failure
+      console.error("Error handling submit:", error);
+      return false; // Return false indicating upload failure
     }
-};
+  };
 
   const verifyTokenAndFetchCategory = async () => {
     try {
