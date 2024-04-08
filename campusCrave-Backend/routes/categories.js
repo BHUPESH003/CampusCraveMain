@@ -25,7 +25,8 @@ const categorySchema = z.object({
 categoriesRouter.post("/", authenticateToken, async (req, res) => {
   try {
     // Validate input using Zod
-    const { categoryName, img_url } = categorySchema.parse(req.body);
+    const { categoryName, img_url } = req.body;
+    console.log({categoryName,img_url})
 
     // Check if the category already exists
     const existingCategory = await client.query(

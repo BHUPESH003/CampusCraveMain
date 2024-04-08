@@ -35,7 +35,7 @@ const OrderDetails = () => {
         const data = await response.json();
 
         setorderDetails(data); // Update state with fetched orders data
-        console.log(data); // Log the fetched orders data
+        console.log("data"  , data); // Log the fetched orders data
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
@@ -43,15 +43,16 @@ const OrderDetails = () => {
 
     fetchData(); // Call the fetchData function
   }, [id]);
+  console.log("Order details state:", orderDetails); // Log orderDetails state
 
-  console.log(orderDetails);
+  
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
 
   return (
     <CContainer>
-      <CRow>
+      {orderDetails ? (<CRow>
         <CCol>
           <div className="container">
             <div className="row">
@@ -114,12 +115,12 @@ const OrderDetails = () => {
             Download as PDF
           </CButton>
         </CCol>
-      </CRow>
+      </CRow>) : (<p>Loading...</p>)}
       {/* Add a reference to the component for printing */}
       <div style={{ display: "none" }}>
       
         <div className="container" ref={componentRef}>
-          <div className="row">
+          {orderDetails && (<div className="row">
             <div className="col">
               <h2>Order Details</h2>
               <p>
@@ -172,7 +173,7 @@ const OrderDetails = () => {
                 ))}
               </ul>
             </div>
-          </div>
+          </div>)}
         </div>
       </div>
     </CContainer>

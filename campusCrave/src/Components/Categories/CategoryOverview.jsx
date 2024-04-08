@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 // import { HeartFill } from "react-bootstrap-icons";
 // import { handleWishListService } from "../services/internalServices/handleWishList";
 import image from "../../assets/food_1.png";
+import { s3 } from "../../../env";
 
 const CategoryOverview = (props) => {
   //   const [wishlist, setWishlist] = useAtom(wishlistAtom);
@@ -41,7 +42,8 @@ const CategoryOverview = (props) => {
   //   const isItemInWishlist = wishlist.some(
   //     (item) => item.name === props.data.category_name
   //   );
-
+  const slicedString=props.data.img_url.slice(2,props.data.img_url.length-2);
+console.log(props.data)
   return (
     <div className="container-fluid overflow-hidden d-flex align-items-center justify-content-center m-0 p-0">
       <div className="text-center">
@@ -53,7 +55,7 @@ const CategoryOverview = (props) => {
                 width: "10vw",
               }}
               className="rounded-circle"
-              src={image}
+              src={s3.baseUrl + slicedString}
               // src={props.data.img_url}
               alt={props.data.title}
             />

@@ -29,6 +29,8 @@ const AddNewCategory = () => {
     imageUrl: [],
   });
 
+  const Foldername = "Categories";
+
   const handleChange = (e, index) => {
     const { name, value, files } = e.target;
     if (name === "images") {
@@ -79,6 +81,10 @@ const AddNewCategory = () => {
     const files = e.target.files;
     const imagesArray = Array.from(files);
 
+    setFormData((prevData) => ({
+      ...prevData,
+      imageUrl: [...prevData.imageUrl, ...imagesArray], // Append new images to existing imageUrl array
+    }));
     // Read each image file and create a preview URL
     const newImagePreviews = imagesArray.map((image) =>
       URL.createObjectURL(image)
@@ -91,15 +97,82 @@ const AddNewCategory = () => {
     }));
   };
 
-  const verifyTokenAndProceedToCheckout = async () => {
+
+  const uploadImages = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        // Redirect to login page or display a message
-        navigate("/login");
-        return;
+      const folderName = Foldername; // Get folderName from formData
+      // Extract only the image file names from formData
+      const requestData = {
+        uploadedDocuments: formData.imageUrl.map((image) => ({
+          fileName: image.name,
+        })),
+        folderName: folderName,
+      };
+
+      // Send request to get pre-signed URLs from the backend
+      const uploadUrlResponse = await fetch(
+        `${envKey.BASE_URL}/vendor/getUploadUrl`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      if (!uploadUrlResponse.ok) {
+        console.error(
+          "Failed to get upload URL:",
+          uploadUrlResponse.statusText
+        );
+        return false;
       }
 
+      const uploadUrlData = await uploadUrlResponse.json();
+      const preSignedUrls = uploadUrlData.data; // Array of pre-signed URLs
+
+      // Construct the image paths in the format 'folderName/fileName'
+      const imagePaths = preSignedUrls.map((document, index) => ({
+        fileName: formData.imageUrl[index].name,
+        uploadPath: `${folderName}/${document.fileName}`,
+      }));
+
+      // Upload files to S3 using pre-signed URLs
+      const uploadPromises = preSignedUrls.map(async (document, index) => {
+        const file = formData.imageUrl[index];
+        const response = await fetch(document.uploadPath, {
+          method: "PUT",
+          body: file,
+
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
+
+        if (!response.ok) {
+          console.error(`Failed to upload ${file.name}:`, response.statusText);
+          return null;
+        }
+
+        return imagePaths[index].uploadPath; // Return the image path in 'folderName/fileName' format
+      });
+
+      const uploadedPaths = await Promise.all(uploadPromises);
+
+      // Construct data to update the form with processed data
+      const updatedFormData = {
+        ...formData,
+        imageUrl: imagePaths.map((imagePath) => imagePath.uploadPath),
+      };
+
+      // Update the form state with the processed data
+      setFormData(updatedFormData);
+
+      console.log("Images uploaded successfully");
+
+      // Call fetchData here
+      const token = localStorage.getItem("token");
       const response = await fetch(
         "http://localhost:3001/vendor/verify-token",
         {
@@ -113,46 +186,48 @@ const AddNewCategory = () => {
       if (!response.ok) {
         // Handle unauthorized access or invalid token
         // Redirect to login page or display a message
-        return;
+        return false;
       }
       const { vendorId } = await response.json();
-      console.log({ vendorId });
-      // console.log("here")
-      fetchData(vendorId);
-      // makePayment(userName);
-    } catch (error) {
-      console.error("Error verifying token and proceeding to checkout:", error);
-    }
-  };
+      console.log("Fetching", vendorId);
 
-  const fetchData = async (vendorId) => {
-    console.log("Fetching", vendorId);
-    try {
-      const { category } = formData;
-      const response = await fetch(`${envKey.BASE_URL}/vendor/${vendorId}/categories`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ categoryName: category }),
-      });
-
-      if (response.ok) {
-        console.log("Category added successfully");
-        // Optionally, perform any additional actions after successful category addition
-      } else {
-        console.error("Failed to add category:", response.statusText);
+      try {
+        // const { product } = formData;
+        // console.log(formData)
+        const response = await fetch(`${envKey.BASE_URL}/vendor/${vendorId}/categories`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedFormData),
+        });
+  
+        if (response.ok) {
+          console.log("Category added successfully");
+          // Optionally, perform any additional actions after successful category addition
+        } else {
+          console.error("Failed to add category:", response.statusText);
+          // Handle error
+        }
+      } catch (error) {
+        console.error("Error adding category:", error);
         // Handle error
       }
+      return true; // Return true indicating successful upload
     } catch (error) {
-      console.error("Error adding category:", error);
-      // Handle error
+      console.error("Error handling submit:", error);
+      return false; // Return false indicating upload failure
     }
   };
+
+  
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    verifyTokenAndProceedToCheckout();
+   
+    uploadImages();
   };
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -187,7 +262,7 @@ const AddNewCategory = () => {
   //     // Handle error
   //   }
   // };
-
+  console.log(formData);
   return (
     <CContainer>
       <h3>Add New Category</h3>
@@ -217,7 +292,7 @@ const AddNewCategory = () => {
               id="imageUrl"
               multiple
               name="imageUrl"
-              value={formData.imageUrl}
+              // value={formData.imageUrl}
               onChange={handleImageChange}
               accept="image/*"
             />
@@ -227,7 +302,7 @@ const AddNewCategory = () => {
         </CRow>
 
         <CButton color="primary" type="submit" className="mt-4 mb-4">
-          Add Product
+          Add Category
         </CButton>
       </CForm>
     </CContainer>

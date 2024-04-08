@@ -392,7 +392,7 @@ const AddNewOrder = () => {
               name="item_name"
               value={formData.item_name}
               onChange={handleChange}
-              placeholder="Product Name"
+              placeholder="Product Name" 
               required
             />
           </CCol>

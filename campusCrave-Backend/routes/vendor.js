@@ -477,14 +477,17 @@ vendorRouter.delete("/:vendorId/categories/:categoryId", async (req, res) => {
 vendorRouter.post("/:vendorId/categories", async (req, res) => {
   try {
     const vendorId = req.params.vendorId;
-    const categoryName = req.body.categoryName;
+    const categoryName = req.body.category;
+    const img_url = req.body.imageUrl;
+
+    console.log(req.body)
     const checkQuery = "SELECT id FROM category WHERE category_name = $1";
     const { rows } = await client.query(checkQuery, [categoryName]);
     if (rows.length === 0) {
       // Category does not exist, insert new category
       const insertQuery =
-        "INSERT INTO category (category_name) VALUES ($1) RETURNING id";
-      const insertedCategory = await client.query(insertQuery, [categoryName]);
+        "INSERT INTO category (category_name,img_url) VALUES ($1,$2) RETURNING id";
+      const insertedCategory = await client.query(insertQuery, [categoryName,img_url]);
       const categoryId = insertedCategory.rows[0].id;
       const vendorCategoryQuery =
         "INSERT INTO VendorCategories (vendor_id, category_id) VALUES ($1, $2)";
