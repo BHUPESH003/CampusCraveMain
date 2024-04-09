@@ -6,9 +6,12 @@ import { cartAtomNew } from "../../store";
 import { handleCartService } from "../../pages/services/internalServices/handlecart.js";
 import CIcon from "@coreui/icons-react";
 import { cilTrash } from "@coreui/icons";
+import { s3 } from "../../../env.js";
 
 export default function CartItem(props) {
+  console.log(props)
   const [cartItem, setCartItems] = useAtom(cartAtomNew);
+  const slicedString=props.image_url.slice(2,props.image_url.length-2);
   const increaseBagCount = (data) => {
     // let cc = handleCartService.increaseCartCount(cartItem, data);
     // setCartItems([...cc]);
@@ -61,6 +64,8 @@ export default function CartItem(props) {
       prevCart.filter((item) => item.productId !== itemId)
     );
   };
+ 
+  
   return (
     //     <div className="card d-flex flex-row"  style={{width : "14rem"}}>
     //   <img src={image}  className="card-img-top" alt="..." />
@@ -164,7 +169,7 @@ export default function CartItem(props) {
       </div>
       <div className="col-3 d-flex align-items-center justify-content-center  position-relative">
         <img
-          src={image}
+          src={s3.baseUrl + slicedString}
           // src={props.image_url}
 
           alt={props.item_name}

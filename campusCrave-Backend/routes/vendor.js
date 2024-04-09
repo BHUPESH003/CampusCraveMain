@@ -55,7 +55,7 @@ const { verifyToken } = require("../MiddleWares/authMiddleWare");
 
 const loginSchema = z.object({
   username: z.string().min(3),
-  password: z.string().min(6),
+  password: z.string().min(5),
 });
 
 // Vendor login route

@@ -24,6 +24,7 @@ const handleAlertMessage =(newState)=>{
           throw new Error("Failed to fetch menu items");
         }
         const data = await response.json();
+        console.log(data)
 
         setMenuItems(data);
       } catch (error) {

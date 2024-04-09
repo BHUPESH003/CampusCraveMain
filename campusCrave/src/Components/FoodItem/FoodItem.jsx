@@ -5,11 +5,12 @@ import { cilCart } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { cartAtomNew } from "../../store";
 import { useAtom } from "jotai";
+import { s3 } from "../../../env";
 
-const FoodItem = ({ item_name, vendor_name, vendor_rating, item_rating, price, item_id, vendor_id, handleAlertMessage }) => {
+const FoodItem = ({ item_name, vendor_name, vendor_rating, item_rating, price, item_id, vendor_id,image_url , handleAlertMessage }) => {
   const [isItemBag, setisItemBag] = useState(false);
   const [cartItems, setCartItems] = useAtom(cartAtomNew);
-  
+  const slicedString=image_url.slice(2,image_url.length-2);
   const handleAddBag = () => {
     setisItemBag(!isItemBag);
   };
@@ -77,7 +78,7 @@ const FoodItem = ({ item_name, vendor_name, vendor_rating, item_rating, price, i
           <img
             className="img-fluid rounded"
             style={{ width: "100%", height: "15vw", objectFit: "cover" }}
-            src={image}
+            src={s3.baseUrl + slicedString}
             alt={item_name}
           />
         </div>

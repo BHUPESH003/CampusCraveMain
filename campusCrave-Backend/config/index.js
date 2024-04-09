@@ -12,6 +12,6 @@ client.connect((err)=>{
   else{
     console.log('connected')
   }
-});
+}); 
 
 module.exports = client;

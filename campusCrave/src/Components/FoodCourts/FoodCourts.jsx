@@ -15,6 +15,7 @@ export default function FoodCourts() {
       .catch((error) =>
         console.error("Error fetching vendors with ratings:", error)
       );
+      
   }, []);
   // const VendorData = [{ VendorName: 'Aggarwal Sweets', imgUrl: 'https://picsum.photos/200/300', dishes: ['ladoo', 'burfi', 'kajuKatli', 'rasgulla'], rating: '4.3', avgTime: '20mins' },
   // { VendorName: 'Aggarwal Sweets', imgUrl: 'https://picsum.photos/200/300', dishes: ['ladoo', 'burfi', 'kajuKatli', 'rasgulla'], rating: '4.3', avgTime: '20mins' },
