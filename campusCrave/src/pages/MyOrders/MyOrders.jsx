@@ -4,6 +4,7 @@ import image from '../../assets/food_1.png'
 // import { Link } from 'react-router-dom'
 // import { Model } from 'mongoose'
 export default function MyOrders(props) {
+  console.log(props)
   const [showModal, setShowModal] = useState(false);
 
   const handleCloseModal = () => setShowModal(false);

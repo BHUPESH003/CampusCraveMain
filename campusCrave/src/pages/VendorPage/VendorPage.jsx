@@ -39,7 +39,7 @@ export default function VendorPage() {
     <div className="container">
       <div className="row p-4 ">
         <div className="col-9">
-          <span className="sub-heading fw-bold">
+          <span className="heading fw-bold">
             {vendorDetails && vendorDetails[0] && vendorDetails[0].vendor_name}
           </span>
           <br />
@@ -48,17 +48,17 @@ export default function VendorPage() {
           </span>
         </div>
 
-        <div className="col-3 text-center align-self-center">
-          <span className="body-font">
+        <div className="col-3 text-center  align-self-center">
+          <span className="sub-heading">
             🌟
             {vendorDetails &&
               vendorDetails[0] &&
               parseFloat(vendorDetails[0].vendor_avg_rating).toFixed(2)}
           </span>
         </div>
-        <div className="border-success border-top pt-3 mt-3">
+        <div className="border-success border-top pt-3 mt-3 ">
           <CIcon icon={cilClock} size="xl" />
-          <span className="p-2 text-muted body-font">
+          <span className="px-2 text-muted heading align-self-center">
             <b>
               {vendorDetails && vendorDetails[0] && vendorDetails[0].avg_time}
             </b>

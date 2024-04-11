@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CIcon from "@coreui/icons-react";
 import { cilCart, cilSearch, cilUser } from "@coreui/icons";
@@ -10,6 +10,11 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   
   const bagCount = useAtomValue(cartItemQuantityAtom);
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
 
   
  
@@ -21,7 +26,7 @@ function Header() {
     localStorage.removeItem('token')
   }
 
-  const token = localStorage.getItem("token");
+  
 
   return (
     <nav className="navbar bg-body-tertiary shadow mb-3 sticky-top ">

@@ -84,15 +84,15 @@ const VendorDetails = (props) => {
   // const slicedStringAgain=slicedString.slice(slicedString.length-2,slicedString.length)
   console.log(slicedString)
   return (
-    <div class="row border-bottom border-2 my-2">
+    <div class="row border-bottom border-2 my-4">
       <CartToast
         show={showToast}
         onClose={() => setShowToast(false)}
         itemName={props.item_name}
       />
-      <div className="col-9 align-self-center">
+      <div className="col-9 align-self-center ">
         <div>
-          <span className="body-font fw-bold">{props.item_name}</span> <br />
+          <div className="my-4"><span className="sub-heading fw-bold">{props.item_name}</span></div>
           <span className="d-flex justify-content-between">
             <span className="body-font fw-semibold">₹{props.price} </span>
             <span className="body-font">
@@ -115,16 +115,16 @@ const VendorDetails = (props) => {
         </div>
 
 
-        <div className="body-font">{props.item_description}</div>
+        <div className="body-font  text-muted mt-2 col-12 col-sm-5 ">{props.item_description}</div>
       </div>
-      <div className="col-3 d-flex align-items-center justify-content-center  position-relative">
+      <div className="col-3 d-flex align-items-center justify-content-center  position-relative my-4">
         <img
           // src={image}
           src={s3.baseUrl + slicedString
           }
 
           alt={props.item_name}
-          style={{ width: "55%", height: "65%" }}
+          style={{ maxWidth: "100%", height: "auto" }}
           className="rounded"
         />
         {/* <Button style={{width:'5vw',left:'45vw',top:'100vw'}} className='bg-light text-black  position-absolute  translate-middle-x translate-middle-y p-2 border border-success'><span className="body-font fw-bold m-2 ">ADD</span><CIcon className="mt-2" icon={cilPlus} size="xxl" /></Button> */}

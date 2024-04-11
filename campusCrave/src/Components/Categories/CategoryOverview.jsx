@@ -53,6 +53,7 @@ console.log(props.data)
               style={{
                 position: "relative",
                 width: "10vw",
+                height:"10vw"
               }}
               className="rounded-circle"
               src={s3.baseUrl + slicedString}
