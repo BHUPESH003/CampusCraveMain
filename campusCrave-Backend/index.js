@@ -24,8 +24,8 @@ const stripe = new Stripe(process.env.STRIPE_KEY, {
 app.get("/verify-token", authenticateToken, (req, res) => {
   const userName = req.user.username; // Assuming userId is included in the token payload
   const email = req.user.email;
-  
-  res.json({ userName , email  });
+
+  res.json({ userName, email });
 });
 app.get("/vendor/verify-token", verifyToken, (req, res) => {
   const vendorId = req.vendorId;
@@ -110,18 +110,18 @@ app.post("/webhook", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-app.get('vendor/stats/:vendorId', async (req, res) => {
+app.get("vendor/stats/:vendorId", async (req, res) => {
   const { vendorId } = req.params;
 
   try {
     const stats = await getVendorStats(vendorId);
     res.json(stats);
   } catch (error) {
-    console.error('Error getting vendor stats:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting vendor stats:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-app.post('/getUploadUrl', async (req, res) => {
+app.post("/getUploadUrl", async (req, res) => {
   try {
     // Call the getUploadURL function passing the request object
     const response = await getUploadURL(req);
@@ -129,11 +129,13 @@ app.post('/getUploadUrl', async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     // If there's an error, send an error response
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+app.get("/", async (req, res) => {
+  res.status(200).json("Hello from server");
+});
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
